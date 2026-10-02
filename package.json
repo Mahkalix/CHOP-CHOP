@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev:api": "pnpm --filter @chopchop/api dev",
+    "dev:front": "pnpm --filter @chopchop/front dev",
+    "build:front": "pnpm --filter @chopchop/front build",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck"
   },

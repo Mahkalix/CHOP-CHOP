@@ -1,5 +1,6 @@
 packages:
   - "apps/*"
+  - "front"
   - "packages/*"
 allowBuilds:
   esbuild: true

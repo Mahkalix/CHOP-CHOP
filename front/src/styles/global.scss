@@ -1,0 +1,38 @@
+@use "./tokens" as *;
+
+:root {
+  --color-paper: #{$paper};
+  --color-ink: #{$ink};
+  --color-orange: #{$orange};
+  --color-yellow: #{$yellow};
+  --color-green: #{$green};
+  --color-muted: #{$muted};
+  --color-line: #{$line};
+  --font-body: "Avenir Next", "Helvetica Neue", sans-serif;
+  --font-display: Georgia, "Times New Roman", serif;
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  background: var(--color-paper);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+html {
+  min-width: 320px;
+  background: var(--color-paper);
+}
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+a {
+  text-decoration: none;
+}
