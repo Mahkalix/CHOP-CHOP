@@ -1,2 +1,2 @@
 export * from "./levels.js";
-export * from "./scores.js";
+export * from "./game.js";

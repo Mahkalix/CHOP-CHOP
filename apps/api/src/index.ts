@@ -1,13 +1,15 @@
 import { buildApp } from "./app.js";
+import { createSupabaseAuthenticator } from "./auth.js";
 import { loadConfig } from "./config.js";
 import { createDb } from "./db/client.js";
-import { createScoreRepository } from "./repository.js";
+import { createRepository } from "./repository.js";
 
 const config = loadConfig();
 const { db, close } = createDb(config.databaseUrl, (err) => console.error("pg pool error:", err));
 
 const app = await buildApp({
-  repository: createScoreRepository(db),
+  repository: createRepository(db),
+  authenticate: createSupabaseAuthenticator(config.supabaseUrl),
   corsOrigin: config.corsOrigin,
   trustProxy: config.trustProxy,
   logger: true,

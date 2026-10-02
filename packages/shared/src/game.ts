@@ -14,39 +14,56 @@ export const LevelIdSchema = z
 /** Level id as it appears in a URL (always a string). */
 export const LevelIdParamSchema = z.string().regex(/^\d+$/).transform(Number).pipe(LevelIdSchema);
 
-export const PlayerNameSchema = z
+export const PseudoSchema = z
   .string()
   .trim()
   .min(2)
   .max(16)
   .regex(/^[\p{L}\p{M}\p{N} _-]+$/u, "Only letters, digits, spaces, '_' and '-' are allowed");
 
-export const ScoreSubmissionSchema = z.object({
-  levelId: LevelIdSchema,
-  playerName: PlayerNameSchema,
+/** PUT /me */
+export const ProfileInputSchema = z.object({ pseudo: PseudoSchema });
+
+/** POST /games */
+export const StartGameSchema = z.object({ levelId: LevelIdSchema });
+
+/** POST /games/:id/finish. The duration is measured by the server, never sent by the client. */
+export const FinishGameSchema = z.object({
   score: z.number().int().min(0),
-  durationMs: z.number().int().positive(),
+  bestCombo: z.number().int().min(0).max(1_000).default(0),
 });
-export type ScoreSubmission = z.infer<typeof ScoreSubmissionSchema>;
+export type FinishGameInput = z.infer<typeof FinishGameSchema>;
 
 export const LeaderboardQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(LEADERBOARD_MAX_LIMIT).default(LEADERBOARD_DEFAULT_LIMIT),
 });
 
-export interface LeaderboardEntry {
+export interface Profile {
+  id: string;
+  pseudo: string;
+}
+
+export interface StartGameResponse {
+  gameId: string;
+  levelId: number;
+  startedAt: string;
+}
+
+export interface FinishGameResponse {
   rank: number;
-  playerName: string;
   score: number;
   durationMs: number;
-  createdAt: string;
+}
+
+export interface LeaderboardEntry {
+  rank: number;
+  pseudo: string;
+  score: number;
+  durationMs: number;
+  finishedAt: string;
 }
 
 export interface LeaderboardResponse {
   levelId: number;
   entries: LeaderboardEntry[];
-}
-
-export interface SubmitScoreResponse {
-  id: string;
-  rank: number;
 }

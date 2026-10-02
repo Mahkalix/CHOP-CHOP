@@ -19,7 +19,7 @@ pnpm dev:api                              # http://localhost:3000
 
 `DATABASE_URL` is the Supabase **Session pooler** connection string
 (Supabase dashboard > Connect > Direct > Method: Session pooler). Ask the team for
-the password; never commit `.env`.
+the password; never commit `.env`. `SUPABASE_URL` is the project URL, used to verify player tokens.
 
 Only one person should apply migrations, to avoid concurrent schema changes:
 
@@ -32,31 +32,41 @@ Other commands: `pnpm test`, `pnpm typecheck`.
 
 ## API
 
-Players have no account: they only enter a name before playing.
+Players sign up and log in **directly with Supabase Auth** from the front end (`supabase-js`,
+email + password). The API never sees passwords: protected routes expect the access token as
+`Authorization: Bearer <token>`, and the API verifies it against the project's public signing keys.
+Only the data needed by the leaderboard is stored server-side (`joueur`, `niveau`, `version_regles`,
+`partie`); recipes, ingredients and orders live in the game config.
 
-| Method | Route | Description |
-|---|---|---|
-| GET | `/health` | Liveness check |
-| POST | `/scores` | Submit a score |
-| GET | `/leaderboard/:levelId?limit=10` | Top scores of a level (limit max 50) |
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| GET | `/health` | no | Liveness check |
+| GET | `/me` | yes | Own profile, `404` if no pseudo chosen yet |
+| PUT | `/me` | yes | Create or change the pseudo (`{ "pseudo": "Gordon" }`), `409` if taken |
+| POST | `/games` | yes | Start a game (`{ "levelId": 1 }`), returns `201 { gameId, levelId, startedAt }` |
+| POST | `/games/:id/finish` | yes | End a game (`{ "score": 300, "bestCombo": 4 }`), returns `{ rank, score, durationMs }` |
+| POST | `/games/:id/abandon` | yes | Give up a game, `204`. Abandoned games are never ranked |
+| GET | `/leaderboard/:levelId?limit=10` | no | Top games of a level (limit max 50) |
 
-`POST /scores` body:
+Typical flow: sign up with Supabase Auth, `PUT /me` once to choose a pseudo, then for each game
+`POST /games` when the level starts and `POST /games/:id/finish` when the timer ends.
 
-```json
-{ "levelId": 1, "playerName": "Gordon", "score": 300, "durationMs": 90000 }
-```
+- `pseudo`: 2-16 characters, letters/digits/space/`_`/`-` (trimmed), unique whatever the case
+- `levelId`: a number from 1 to 5
+- The **duration is measured by the server** (time between start and finish), never sent by the client
+- Finish errors: `400` invalid body, `404` unknown game or not yours, `409` game already ended,
+  `422` implausible score (the game is then closed)
+- `POST /games` returns `403` if the player has no profile yet
+- `GET /leaderboard/:levelId` returns
+  `{ "levelId": 1, "entries": [{ "rank", "pseudo", "score", "durationMs", "finishedAt" }] }`,
+  sorted by score (desc), then duration (asc), then finish time
 
-- `levelId`: 1 to 5
-- `playerName`: 2-16 characters, letters/digits/space/`_`/`-` (trimmed)
-- Responses: `201 { "id": "...", "rank": 1 }`, `400` invalid payload, `422` implausible score
+Scores are computed client-side, so the API applies plausibility bounds:
 
-`GET /leaderboard/:levelId` returns
-`{ "levelId": 1, "entries": [{ "rank", "playerName", "score", "durationMs", "createdAt" }] }`,
-sorted by score (desc), then duration (asc).
-
-Scores are computed client-side, so the API only applies plausibility bounds per level
-(`LEVEL_LIMITS` in `packages/shared/src/levels.ts`). These values are placeholders until the
-level design is final.
+- the score cannot exceed `LEVEL_LIMITS[level].maxScore` (`packages/shared/src/levels.ts`, placeholder values)
+- a game ends when the timer of its rules version runs out, so the server-measured duration must be within
+  `duree_partie_secondes` minus 5 s / plus 60 s (`GAME_DURATION_TOLERANCE_MS`, to allow for lag and pauses)
+- a player has one game in progress at most: starting a new one abandons the previous one
 
 ## Deployment
 
