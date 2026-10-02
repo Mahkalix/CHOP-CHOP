@@ -1,0 +1,354 @@
+{
+  "id": "76ac1c7d-4068-4b62-a897-7e2a9c6e9bf4",
+  "prevId": "a5531d9f-2823-489e-a438-184ea485139f",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.joueur": {
+      "name": "joueur",
+      "schema": "",
+      "columns": {
+        "id_joueur": {
+          "name": "id_joueur",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "pseudo": {
+          "name": "pseudo",
+          "type": "varchar(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_creation": {
+          "name": "date_creation",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "joueur_pseudo_lower_idx": {
+          "name": "joueur_pseudo_lower_idx",
+          "columns": [
+            {
+              "expression": "lower(\"pseudo\")",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "joueur_id_joueur_users_id_fk": {
+          "name": "joueur_id_joueur_users_id_fk",
+          "tableFrom": "joueur",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "id_joueur"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.niveau": {
+      "name": "niveau",
+      "schema": "",
+      "columns": {
+        "id_niveau": {
+          "name": "id_niveau",
+          "type": "smallint",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "numero": {
+          "name": "numero",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nom": {
+          "name": "nom",
+          "type": "varchar(40)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "niveau_numero_unique": {
+          "name": "niveau_numero_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "numero"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "niveau_numero_check": {
+          "name": "niveau_numero_check",
+          "value": "\"niveau\".\"numero\" between 1 and 5"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.partie": {
+      "name": "partie",
+      "schema": "",
+      "columns": {
+        "id_partie": {
+          "name": "id_partie",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "id_joueur": {
+          "name": "id_joueur",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id_niveau": {
+          "name": "id_niveau",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id_version": {
+          "name": "id_version",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_debut": {
+          "name": "date_debut",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "date_fin": {
+          "name": "date_fin",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "statut": {
+          "name": "statut",
+          "type": "statut_partie",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'en_cours'"
+        },
+        "score_final": {
+          "name": "score_final",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meilleur_combo": {
+          "name": "meilleur_combo",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {
+        "partie_classement_idx": {
+          "name": "partie_classement_idx",
+          "columns": [
+            {
+              "expression": "id_niveau",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "score_final",
+              "isExpression": false,
+              "asc": false,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"partie\".\"statut\" = 'terminee'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "partie_joueur_idx": {
+          "name": "partie_joueur_idx",
+          "columns": [
+            {
+              "expression": "id_joueur",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "partie_id_joueur_joueur_id_joueur_fk": {
+          "name": "partie_id_joueur_joueur_id_joueur_fk",
+          "tableFrom": "partie",
+          "tableTo": "joueur",
+          "columnsFrom": [
+            "id_joueur"
+          ],
+          "columnsTo": [
+            "id_joueur"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "partie_id_niveau_niveau_id_niveau_fk": {
+          "name": "partie_id_niveau_niveau_id_niveau_fk",
+          "tableFrom": "partie",
+          "tableTo": "niveau",
+          "columnsFrom": [
+            "id_niveau"
+          ],
+          "columnsTo": [
+            "id_niveau"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "partie_id_version_version_regles_id_version_fk": {
+          "name": "partie_id_version_version_regles_id_version_fk",
+          "tableFrom": "partie",
+          "tableTo": "version_regles",
+          "columnsFrom": [
+            "id_version"
+          ],
+          "columnsTo": [
+            "id_version"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "partie_dates_check": {
+          "name": "partie_dates_check",
+          "value": "\"partie\".\"date_fin\" is null or \"partie\".\"date_fin\" >= \"partie\".\"date_debut\""
+        },
+        "partie_score_check": {
+          "name": "partie_score_check",
+          "value": "(\"partie\".\"statut\" = 'terminee') = (\"partie\".\"score_final\" is not null)"
+        },
+        "partie_score_positive_check": {
+          "name": "partie_score_positive_check",
+          "value": "\"partie\".\"score_final\" is null or \"partie\".\"score_final\" >= 0"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.version_regles": {
+      "name": "version_regles",
+      "schema": "",
+      "columns": {
+        "id_version": {
+          "name": "id_version",
+          "type": "smallint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "version_regles_id_version_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "32767",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "nom": {
+          "name": "nom",
+          "type": "varchar(40)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "duree_partie_secondes": {
+          "name": "duree_partie_secondes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "version_regles_nom_unique": {
+          "name": "version_regles_nom_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "nom"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "version_regles_duree_check": {
+          "name": "version_regles_duree_check",
+          "value": "\"version_regles\".\"duree_partie_secondes\" > 0"
+        }
+      },
+      "isRLSEnabled": true
+    }
+  },
+  "enums": {
+    "public.statut_partie": {
+      "name": "statut_partie",
+      "schema": "public",
+      "values": [
+        "en_cours",
+        "terminee",
+        "abandonnee"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

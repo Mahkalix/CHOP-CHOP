@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "partie_en_cours_uniq" ON "partie" USING btree ("id_joueur") WHERE "partie"."statut" = 'en_cours';
