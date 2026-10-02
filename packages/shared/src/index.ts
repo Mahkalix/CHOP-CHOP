@@ -1,2 +1,2 @@
-// Zod schemas and types shared with the front end: added with the leaderboard API.
-export {};
+export * from "./levels.js";
+export * from "./scores.js";
