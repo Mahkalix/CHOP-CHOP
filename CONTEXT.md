@@ -6,7 +6,7 @@ Dernière vérification locale : 6 novembre 2026. Ce fichier sert de point d'ent
 
 CHOP-CHOP est un jeu web solo de cuisine, jouable au clavier sur ordinateur. Un joueur s'authentifie, lance une partie sur l'un des **trois niveaux**, prépare des plats et les livre pendant que le temps s'écoule. Les livraisons réalisées dans le temps imparti donnent des points. Le résultat doit pouvoir être enregistré et consulté dans un classement par niveau. La première priorité est une boucle jouable complète sur le niveau 1, depuis l'authentification jusqu'au classement. Les niveaux 2 et 3 viennent ensuite.
 
-Ces points ont été confirmés par Sabrina dans la conversation du projet. Les recettes, le barème précis, la durée définitive, les combos, les pénalités et plusieurs interactions restent à valider. Aucun assistant ne doit déduire ces règles des exemples chiffrés des documents de cadrage.
+Ces points ont été confirmés par Sabrina dans la conversation du projet. Le 6 novembre 2026, Sabrina a retenu **trois recettes pour le jeu, 3 secondes de découpe par ingrédient et 8 secondes de cuisson de la viande**. Le détail exact des recettes, le délai avant brûlure (6 secondes proposées, non validées), le barème, la durée définitive d'une partie, les combos, les pénalités et plusieurs interactions restent à valider. Aucun assistant ne doit déduire ces autres règles des exemples chiffrés des documents de cadrage.
 
 ## Équipe et coordination
 
@@ -127,9 +127,9 @@ Dans la description de PR, indiquer le besoin, les parties du code touchées, ce
 
 ## Décisions ouvertes à consigner
 
-1. Recettes et différences entre les trois niveaux.
+1. Contenu précis des trois recettes validées en nombre et différences entre les trois niveaux ; découpe de 3 secondes et cuisson de 8 secondes validées.
 2. Durée de partie, génération des commandes, barème, combo et pénalités.
-3. Résultat d'une livraison invalide, d'une commande expirée, d'une cuisson trop longue et d'une pause.
+3. Délai avant brûlure (6 secondes proposées, non validées), résultat d'une livraison invalide, d'une commande expirée, d'une cuisson trop longue et d'une pause.
 4. Contrat concret entre le jeu Phaser, déjà intégré dans `front/src/features/game/`, et les interfaces React ; la répartition des responsabilités est déjà décidée.
 5. Classement de toutes les parties ou du meilleur score par joueur, départage et affichage du rang personnel.
 6. Alignement sûr des cinq niveaux actuellement acceptés en code avec les trois niveaux retenus.
