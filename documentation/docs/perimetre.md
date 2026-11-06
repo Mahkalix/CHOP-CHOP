@@ -3,7 +3,7 @@ title: Périmètre et écrans
 ---
 
 :::info Document de cadrage
-Contenu issu du cahier des charges du 2 octobre 2026. Les propositions restent à valider ; les comportements attendus ne constituent pas une preuve d’implémentation. Voir les [sources](./references.md).
+Le cadrage du 2 octobre 2026 est actualisé par le contexte du 6 novembre 2026 : cinq niveaux prévus et un classement par niveau. La priorité est un niveau jouable de bout en bout. Voir les [sources](./references.md).
 :::
 
 ## Périmètre de la première version
@@ -16,9 +16,9 @@ Ingrédients avec états, découpe, cuisson, assemblage et livraison.
 
 Un seul objet porté à la fois ; une assiette garnie compte comme un objet.
 
-Classement mondial commun à tous les joueurs inscrits.
+Classement par niveau, avec cinq niveaux prévus. Leurs noms et leur déclinaison sont à aligner avec Figma.
 
-React pour les écrans et l’interface ; Phaser pour le gameplay 2D.
+React/Vite pour les écrans et l’interface ; moteur de jeu à choisir entre Phaser et Canvas 2D maison. Fastify et Supabase pour le back et l’authentification.
 
 ## Écrans du jeu
 
@@ -29,7 +29,8 @@ React pour les écrans et l’interface ; Phaser pour le gameplay 2D.
 | Comment jouer | Objectif, touches, recettes, états des ingrédients et règles de découpe et cuisson. Un panneau suffit. |
 | Partie | Cuisine, personnage, commandes clients, temps restant, score, combo et objet porté ; barres de transformation. |
 | Fin de partie | Score final, commandes réussies et ratées, meilleur combo, meilleur score personnel et rang si disponible. |
-| Classement mondial | Rang, pseudo, meilleur score ; position du joueur et navigation dans le classement. |
+| Sélection du niveau | Cinq niveaux prévus ; noms et présentation à aligner avec Figma. |
+| Classement par niveau | Rang, pseudo et score pour le niveau choisi ; position personnelle et pagination à confirmer à l’intégration. |
 
 
 ## Scope retenu et éléments exclus
@@ -41,5 +42,5 @@ React pour les écrans et l’interface ; Phaser pour le gameplay 2D.
 | Tomate, viande et trois recettes proposées | Catalogue étendu, pain, sauces et personnalisation des recettes |
 | Découpe, cuisson, assemblage, livraison | Casserole, soupe, lavage des assiettes et vaisselle sale |
 | Collisions simples et interactions proches | Cuisine mobile, obstacles dynamiques, incendies et extincteur |
-| Timer, score, combos et difficulté progressive | Campagne, niveaux multiples, améliorations et inventaire |
-| Classement mondial et record personnel | Classements par amis, boutique, succès et personnalisation du personnage |
+| Timer, score, combos et cinq niveaux prévus | Campagne narrative, améliorations et inventaire |
+| Classement par niveau et record personnel attendu | Classements par amis, boutique, succès et personnalisation du personnage |

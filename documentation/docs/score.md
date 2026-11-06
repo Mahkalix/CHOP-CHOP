@@ -26,7 +26,7 @@ Une assiette conforme sans commande correspondante est également refusée.
 
 ## Progression et difficulté
 
-Proposition : partie de 180 secondes, avec trois phases et trois commandes actives au maximum. La cuisine et les règles restent identiques pour tous les joueurs du même classement.
+La règle `v1` décrite dans le contexte du 6 novembre 2026 fixe la partie à **180 secondes**. Une nouvelle durée exige une nouvelle version des règles. La répartition en trois phases et la limite de trois commandes actives ci-dessous restent proposées. Les règles doivent être identiques pour les joueurs d’un même niveau et d’une même version.
 
 
 | Phase | Recettes disponibles | Délai par commande |

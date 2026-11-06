@@ -112,6 +112,8 @@ UC42, UC44 et UC46 sont automatiques. Contrôle serveur et identifiant de partie
 
 ## Classement mondial
 
+Le titre de cette section reprend les diagrammes initiaux. Le contexte du 6 novembre 2026 prévoit désormais un [classement par niveau](./classement.md) ; ces cas restent des exigences de cadrage à rapprocher de l’API disponible.
+
 | Identifiant | Cas d’utilisation |
 | --- | --- |
 | UC49 | Consulter le classement |

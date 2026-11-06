@@ -1,6 +1,8 @@
 # Documentation CHOP-CHOP
 
-Site Docusaurus en français pour le cadrage du jeu web de cuisine solo CHOP-CHOP. Les sources originales sont conservées dans `static/references`. Les propositions restent à valider ; la documentation ne décrit pas un jeu déjà implémenté.
+Site Docusaurus en français pour CHOP-CHOP, jeu web de cuisine solo avec cinq niveaux prévus et un classement par niveau. Le cadrage initial est actualisé par le contexte du 6 novembre 2026. L’état du jeu est rapporté par ce document, sans audit direct de ses branches. Les sources sont conservées dans `static/references`.
+
+Le menu Équipe présente Sabrina, Melissa (Mel), Maxence et Valérie, ainsi que les conventions de code et les règles de travail. Le monorepo du jeu utilise Node.js 22+ et pnpm 11 ; les commandes npm ci-dessous concernent uniquement ce site de documentation.
 
 ## Utilisation locale
 

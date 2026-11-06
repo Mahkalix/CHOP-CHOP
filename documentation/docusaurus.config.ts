@@ -4,7 +4,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'CHOP-CHOP',
-  tagline: 'Un jeu de cuisine solo. Un classement mondial.',
+  tagline: 'Un jeu de cuisine solo. Cinq niveaux, un classement par niveau.',
   favicon: 'img/chopchop-logo.svg',
   // Use the standard toolchain to avoid native SWC cache issues on Windows.
   future: {v4: true, faster: false},
@@ -31,6 +31,10 @@ const config: Config = {
         {type: 'docSidebar', sidebarId: 'projectSidebar', position: 'left', label: 'Documentation'},
         {to: '/docs/regles-du-jeu', label: 'Règles du jeu', position: 'left'},
         {to: '/docs/design', label: 'Design', position: 'left'},
+        {type: 'dropdown', label: 'Équipe', position: 'left', items: [
+          {to: '/docs/equipe', label: 'Présentation de l’équipe'},
+          {to: '/docs/conventions', label: 'Conventions et règles de travail'},
+        ]},
         {to: '/docs/cas-utilisation', label: 'Cas d’utilisation', position: 'left'},
         {to: '/docs/references', label: 'Références', position: 'right'},
         {href: 'https://www.figma.com/design/5YyQNON3zicZCKuN1CkEH0/Chop-Chop?node-id=0-1', label: 'Figma', position: 'right'},
@@ -44,6 +48,7 @@ const config: Config = {
         {label: 'Règles du jeu', to: '/docs/regles-du-jeu'},
         {label: 'Validation du prototype', to: '/docs/validation'},
         {label: 'Design et maquettes', to: '/docs/design'},
+        {label: 'Présentation de l’équipe', to: '/docs/equipe'},
       ]}],
       copyright: `CHOP-CHOP · Documentation du projet · ${new Date().getFullYear()}`,
     },

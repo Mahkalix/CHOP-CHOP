@@ -4,21 +4,23 @@ title: Présentation du projet
 
 # CHOP-CHOP
 
-Un jeu web de cuisine en 2D, jouable **en solo sur ordinateur au clavier**. Préparez et livrez un maximum de plats avant la fin du temps imparti, puis comparez votre meilleur score à celui des autres joueurs inscrits dans un classement mondial.
+Un jeu web de cuisine en 2D, jouable **en solo sur ordinateur au clavier**, avec **cinq niveaux prévus et un classement par niveau**. Préparez et livrez un maximum de plats avant la fin du temps imparti, puis comparez votre score à celui des autres joueurs du même niveau.
 
-React prend en charge les écrans et l’interface ; Phaser prend en charge le gameplay 2D. La première version comprend une cuisine fixe, un personnage, des ingrédients à transformer, des commandes clients, un timer et des combos.
+React 19 et Vite prennent en charge le front ; Fastify, Drizzle et PostgreSQL sur Supabase prennent en charge le back et les données. Supabase Auth gère la connexion. Le moteur de jeu reste à choisir entre Phaser et un Canvas 2D maison. La priorité est un premier niveau jouable avant la déclinaison des suivants.
 
 :::info Statut du projet
-Cette documentation reprend le cahier des charges du **2 octobre 2026** et les **54 cas d’utilisation** fournis. Elle décrit le jeu attendu. Les propositions restent à valider et ne sont pas des décisions approuvées.
+Cette documentation réunit le cadrage du **2 octobre 2026**, les **54 cas d’utilisation**, les maquettes et le **contexte projet du 6 novembre 2026**. Selon ce dernier, l’API est développée sur `feat/8-API-and-BDD` et n’est pas encore fusionnée dans `main`. Les règles de gameplay encore proposées restent à valider.
 :::
 
 ## Explorer le projet
 
+- [Présentation de l’équipe](./equipe.md)
+- [Conventions et règles de travail](./conventions.md)
 - [Périmètre et écrans](./perimetre.md)
 - [Règles du jeu](./regles-du-jeu.md)
 - [Cuisine, ingrédients et recettes](./gameplay.md)
 - [Commandes, difficulté et score](./score.md)
-- [Classement mondial](./classement.md)
+- [Classement par niveau](./classement.md)
 - [Architecture et décisions techniques](./architecture.md)
 - [Design et maquettes Figma](./design.md)
 - [Catalogue des 54 cas d’utilisation](./cas-utilisation.md)

@@ -7,7 +7,7 @@ title: Règles du jeu
 Préparer et livrer un maximum de commandes avant la fin du chronomètre. CHOP-CHOP se joue en solo, sur ordinateur, au clavier. Les livraisons réussies augmentent le score ; les livraisons consécutives augmentent le combo.
 
 :::info Règles du prototype
-Cette page résume le cadrage du jeu. Les touches, recettes, durées et barèmes ci-dessous sont des propositions à valider lors des essais du prototype. Voir les [critères de validation](./validation.md).
+Cette page résume le cadrage du jeu, actualisé par le contexte du 6 novembre 2026. La durée de la règle `v1` est fixée à 180 secondes ; les touches, recettes et barèmes ci-dessous restent proposés pour les essais du prototype. Voir les [critères de validation](./validation.md).
 :::
 
 ## Comment jouer
@@ -41,7 +41,7 @@ Une tomate brute ou une viande crue ou brûlée ne convient pas. Une viande qui 
 
 ## Temps, score et combos
 
-La durée proposée est de **3 minutes**. Chaque commande possède son propre délai : servir un plat exige une recette exacte et une commande encore active.
+La règle `v1` fixe la durée à **3 minutes**, selon le contexte du 6 novembre 2026. Cinq niveaux sont prévus, avec un classement par niveau. Chaque commande possède son propre délai : servir un plat exige une recette exacte et une commande encore active. Le barème ci-dessous reste proposé pour le gameplay.
 
 - Une livraison valide rapporte 100 points de base et jusqu’à 50 points de rapidité, avant application du multiplicateur.
 - Les livraisons consécutives font progresser le combo : ×1, ×2, puis ×3 au maximum.
@@ -55,4 +55,4 @@ Les détails et exemples de calcul figurent dans [Commandes et score](./score.md
 
 Quand le chronomètre atteint zéro, la partie s’arrête. Le bilan présente le score et les statistiques du service. Le joueur peut rejouer, consulter le classement ou retourner à l’accueil. Une partie abandonnée ne produit pas de score classé.
 
-Pour approfondir : [Cuisine et gameplay](./gameplay.md), [Classement mondial](./classement.md) et [Design et maquettes](./design.md).
+Pour approfondir : [Cuisine et gameplay](./gameplay.md), [Classement par niveau](./classement.md) et [Design et maquettes](./design.md).

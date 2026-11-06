@@ -3,20 +3,28 @@ title: Validation du prototype
 ---
 
 :::info Document de cadrage
-Contenu issu du cahier des charges du 2 octobre 2026. Les propositions restent à valider ; les comportements attendus ne constituent pas une preuve d’implémentation. Voir les [sources](./references.md).
+Le cadrage du 2 octobre 2026 est complété par le contexte projet du 6 novembre 2026. Les choix actés ci-dessous sont rapportés par ce contexte ; les critères restent à vérifier dans le jeu intégré. Voir les [sources](./references.md).
 :::
 
-## Points à valider avant développement
+## Éléments fixés par le contexte
+
+Cinq niveaux sont prévus, avec un classement par niveau. La priorité est un niveau jouable de bout en bout.
+
+La règle `v1` initialise une durée de 180 secondes. L’API accepte une durée mesurée de 175 à 240 secondes ; changer la durée prévue exige une nouvelle version des règles.
+
+L’inscription et la connexion utilisent Supabase Auth ; l’API Fastify vérifie le jeton. Elle est décrite sur `feat/8-API-and-BDD`, sans fusion dans `main` à la date du contexte.
+
+## Points à valider ou à intégrer
 
 Valider les trois recettes et les règles d’assemblage et de refus des livraisons.
 
 Confirmer la cuisson autonome, la suspension de découpe et les durées proposées.
 
-Valider la durée de partie, la génération des commandes et le barème des combos.
+Valider la génération des commandes, le barème des combos et les plafonds provisoires de score de chaque niveau.
 
-Choisir l’inscription et l’authentification ; un pseudo seul ne garantit pas une identité persistante.
+Choisir Phaser ou Canvas 2D maison et aligner les cinq niveaux avec Figma ; le front initial n’en listait que trois.
 
-Préciser les contrôles serveur nécessaires à la fiabilité du classement.
+Vérifier l’intégration front/API : création du pseudo, démarrage, fin de partie, abandon et classement. Vérifier les refus `422` pour les durées et scores hors limites.
 
 ## Critères de validation du prototype
 
