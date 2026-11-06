@@ -36,3 +36,16 @@ a {
 a {
   text-decoration: none;
 }
+
+@font-face {
+  font-family: Inter;
+  src: url('/fonts/inter.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Pixelify Sans';
+  src: url('/fonts/pixelifysans.ttf') format('truetype');
+  font-weight: 400 700;
+  font-display: swap;
+}

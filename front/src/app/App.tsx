@@ -8,7 +8,7 @@ function readRoute(): Route {
   const value = window.location.hash.slice(1) as Route;
   return routes.includes(value) ? value : 'accueil';
 }
-const titles: Record<Route, string> = { accueil: 'Accueil', jouer: 'Mise en place…', regles: 'Comment jouer', classement: 'Le classement' };
+const titles: Record<Route, string> = { accueil: 'Accueil', jouer: 'Mise en place…', regles: 'Comment jouer', classement: 'Classement' };
 
 export function App() {
   const [route, setRoute] = useState<Route>(readRoute);
@@ -25,7 +25,7 @@ export function App() {
   if (route === 'accueil') return <HomePage />;
   const backLabel = route === 'regles' ? 'COMPRIS, RETOUR' : route === 'jouer' ? 'RETOUR À L’ACCUEIL' : 'RETOUR';
   return (
-    <main className={styles.page}>
+    <main className={styles.page} data-screen={route}>
       <header className={styles.header}>
         {route !== 'jouer' && <img src="/menu/logo.png" alt="CHOP CHOP" />}
         <h1 ref={heading} tabIndex={-1}>{titles[route].toUpperCase()}</h1>
@@ -42,7 +42,7 @@ export function App() {
 }
 
 const steps = [
-  ['1 / PRENDS UNE TOMATE', 'Approche-toi du bac TOMATES. Appuie sur E pour prendre une tomate.'],
+  ['1 / PRENDS UNE TOMATE', 'Approche-toi du bac TOMATES.\nAppuie sur E pour prendre une tomate.'],
   ['2 / DÉCOUPE-LA', 'À la planche : E pour poser la tomate. Puis maintiens C pendant 3 s, les mains libres.'],
   ['3 / PRÉPARE L’ASSIETTE', 'Pose une assiette au poste ASSEMBLER. Reprends la tomate découpée à la planche, puis pose-la sur l’assiette avec E.'],
   ['4 / SERS LA COMMANDE', 'Prends l’assiette terminée. Va au poste SERVIR et appuie sur E. La bonne recette rapporte des points !'],
@@ -53,7 +53,7 @@ function Rules() {
     <p>TON BUT : servir les bonnes assiettes avant la fin des 3 minutes.</p>
     <div className={styles.row}>
       {[['Z Q S D ou ↑ ← ↓ →', 'Se déplacer'], ['E', 'Prendre / poser', 'Appui simple'], ['C', 'Découper', 'Maintenir 3 secondes'], ['Esc', 'Pause']].map(([key, label, hint]) =>
-        <section key={key}><kbd>{key}</kbd><h3>{label}</h3>{hint}</section>
+        <section key={key}>{key === 'Z Q S D ou ↑ ← ↓ →' ? <div className={styles.movement}>{['ZQSD', '↑←↓→'].map((layout, i) => <span key={layout}>{i === 1 && <b>ou</b>}<span className={styles.keys}>{Array.from(layout, letter => <kbd key={letter}>{letter}</kbd>)}</span></span>)}</div> : <kbd>{key}</kbd>}<h3>{label}</h3>{hint}</section>
       )}
     </div>
     <h2>TA PREMIÈRE COMMANDE : UNE ASSIETTE DE TOMATE</h2>
