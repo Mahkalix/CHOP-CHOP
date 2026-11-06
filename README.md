@@ -91,3 +91,13 @@ The React/Vite front is connected to Vercel through its native GitHub integratio
 Front PRs receive deployment checks and preview links from the Vercel bot.
 See [Vercel setup and verification](docs/vercel.md) for monorepo settings,
 changed-file filtering and access to protected previews.
+
+## Player authentication (frontend)
+
+Copy `front/.env.example` to `front/.env`. Set `VITE_API_URL` to the public CHOP-CHOP API origin, `VITE_SUPABASE_URL` to the Supabase project URL, and `VITE_SUPABASE_PUBLISHABLE_KEY` to its **publishable** key (the legacy **anon** key also works). These are browser-visible values: never use `service_role`, a secret API key, or database credentials. Restart Vite or rebuild the deployment after changing them.
+
+In Supabase Auth, enable email/password and configure the site URL and allowed redirect URLs for the frontend origin/path used for signup confirmation. The API's `SUPABASE_URL` must point to the same project, with asymmetric signing keys supported by the existing API verifier (ES256/RS256). Configure its `CORS_ORIGIN` to allow the frontend origin. These are service configuration prerequisites, not changes made by this frontend PR.
+
+Open `#jouer`: sign in or create an account, confirm the email if required, then choose a pseudo. Supabase handles password submission, session persistence and token refresh. Only the current access token goes to CHOP-CHOP's `GET/PUT /me`; a `404` asks for a pseudo, `409` asks for another pseudo, and `401` asks for a new login. The menu's locally stored pseudo is only a suggestion. Logout ends the current browser session. A ready profile still shows an explicit kitchen placeholder: no `POST /games` is sent before the game scene exists (#11).
+
+Validation: `pnpm --filter @chopchop/front test`, `pnpm build:front`, `pnpm typecheck`. Component tests use a simulated Supabase SDK and mocked profile responses; they do not prove a deployed Supabase/API integration. Before final validation, use a real test account to check signup/confirmation, login/reload, pseudo conflict, token refresh, logout and expired-session rejection. References: [Supabase password sign-in](https://supabase.com/docs/reference/javascript/auth-signinwithpassword), [auth state events](https://supabase.com/docs/reference/javascript/auth-onauthstatechange).

@@ -1,0 +1,14 @@
+.panel {
+  width: min(100%, 540px);
+  margin: 20px auto;
+  padding: clamp(16px, 2vw, 24px);
+  background: #e8dcc6;
+  overflow-wrap: anywhere;
+  form { display: grid; gap: 10px; }
+  input, button { font: inherit; padding: 10px 14px; border: 2px solid #15100d; color: #15100d; background: #f7f1e6; min-width: 0; }
+  button { cursor: pointer; margin-block: 6px; }
+  button[type='submit'] { background: #922f1f; color: white; }
+  button:disabled { cursor: wait; opacity: .7; }
+  small { line-height: 1.5; }
+  :focus-visible { outline: 3px solid #922f1f; outline-offset: 3px; }
+}

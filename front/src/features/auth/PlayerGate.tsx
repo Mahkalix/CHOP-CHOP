@@ -1,0 +1,105 @@
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { PseudoSchema, type Profile } from '@chopchop/shared';
+import { useAuth } from './AuthProvider';
+import { AuthForm } from './AuthForm';
+import { ProfileError, requestProfile } from './profileApi';
+import s from './PlayerGate.module.scss';
+
+export function PlayerGate() {
+  const { client, session, loading, error } = useAuth();
+  const [rejectedToken, setRejectedToken] = useState<string | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
+  const [logoutError, setLogoutError] = useState('');
+  if (!client) return <section className={s.panel}><h2>La connexion se prépare.</h2><p>Le service joueur n’est pas encore disponible. Reviens bientôt.</p></section>;
+  if (loading) return <p role="status">Restauration de ta connexion…</p>;
+  const token = session?.access_token;
+  if (!token || token === rejectedToken) return <AuthForm
+    notice={token === rejectedToken ? 'Ta session a expiré. Reconnecte-toi pour continuer.' : error ?? undefined}
+    onAuthenticated={() => setRejectedToken(null)}
+  />;
+
+  async function signOut() {
+    if (!client || signingOut) return;
+    setSigningOut(true); setLogoutError('');
+    try {
+      const { error: failure } = await client.auth.signOut({ scope: 'local' });
+      if (failure) setLogoutError('Déconnexion impossible. Réessaie.');
+    } catch { setLogoutError('Déconnexion impossible. Réessaie.'); }
+    finally { setSigningOut(false); }
+  }
+  return <section className={s.panel}>
+    <ProfilePanel key={token} token={token} onExpired={() => setRejectedToken(token)} />
+    <button type="button" onClick={signOut} disabled={signingOut}>{signingOut ? 'Déconnexion…' : 'Se déconnecter'}</button>
+    {logoutError && <p role="alert">{logoutError}</p>}
+  </section>;
+}
+
+function ProfilePanel({ token, onExpired }: { token: string; onExpired: () => void }) {
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [pseudo, setPseudo] = useState(() => {
+    try { return sessionStorage.getItem('pseudo') ?? ''; } catch { return ''; }
+  });
+  const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(true);
+  const [error, setError] = useState('');
+  const [attempt, setAttempt] = useState(0);
+  const saveController = useRef<AbortController | null>(null);
+  const onExpiredRef = useRef(onExpired);
+  onExpiredRef.current = onExpired;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true); setError(''); setLoadFailed(false);
+    requestProfile(token, controller.signal).then(data => {
+      if (controller.signal.aborted) return;
+      setProfile(data); setEditing(!data);
+      if (data) setPseudo(data.pseudo);
+      setLoading(false);
+    }).catch((failure: unknown) => {
+      if (controller.signal.aborted) return;
+      if (failure instanceof ProfileError && failure.status === 401) onExpiredRef.current();
+      else { setError(failure instanceof Error ? failure.message : 'Profil indisponible.'); setLoadFailed(true); }
+      setLoading(false);
+    });
+    return () => { controller.abort(); saveController.current?.abort(); };
+  }, [token, attempt]);
+
+  async function save(event: FormEvent) {
+    event.preventDefault();
+    if (saving) return;
+    const parsed = PseudoSchema.safeParse(pseudo);
+    if (!parsed.success) { setError('Choisis 2 à 16 caractères : lettres, chiffres, espaces, _ ou -.'); return; }
+    const controller = new AbortController();
+    saveController.current = controller;
+    setSaving(true); setError('');
+    try {
+      const data = await requestProfile(token, controller.signal, parsed.data);
+      if (controller.signal.aborted || !data) return;
+      setProfile(data); setPseudo(data.pseudo); setEditing(false);
+    } catch (failure) {
+      if (controller.signal.aborted) return;
+      if (failure instanceof ProfileError && failure.status === 401) onExpiredRef.current();
+      else setError(failure instanceof Error ? failure.message : 'Enregistrement impossible.');
+    } finally { if (!controller.signal.aborted) setSaving(false); }
+  }
+
+  if (loading) return <p role="status">Chargement de ton profil…</p>;
+  if (loadFailed) return <><p role="alert">{error}</p><button onClick={() => setAttempt(value => value + 1)}>Réessayer</button></>;
+  return <>
+    <h2>{profile ? `BONJOUR ${profile.pseudo}` : 'CHOISIS TON PSEUDO'}</h2>
+    {editing ? <form onSubmit={save} aria-busy={saving}>
+      <label htmlFor="player-pseudo">Pseudo du classement</label>
+      <input id="player-pseudo" autoComplete="nickname" minLength={2} maxLength={16} required value={pseudo} onChange={event => setPseudo(event.target.value)} disabled={saving} aria-describedby="pseudo-hint" />
+      <small id="pseudo-hint">2 à 16 caractères : lettres, chiffres, espaces, _ ou -.</small>
+      <button type="submit" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer le pseudo'}</button>
+      {profile && <button type="button" disabled={saving} onClick={() => { setPseudo(profile.pseudo); setEditing(false); setError(''); }}>Annuler</button>}
+    </form> : <>
+      <p role="status">Ton profil est prêt.</p>
+      <p>La cuisine se prépare encore. Le lancement des parties sera disponible avec la scène de jeu.</p>
+      <button type="button" onClick={() => setEditing(true)}>Modifier mon pseudo</button>
+    </>}
+    {error && <p role="alert">{error}</p>}
+  </>;
+}

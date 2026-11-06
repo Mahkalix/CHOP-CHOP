@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { AuthProvider } from '../features/auth/AuthProvider';
+import { PlayerGate } from '../features/auth/PlayerGate';
 import { HomePage } from '../features/home/HomePage';
 import styles from '../features/home/HomePage.module.scss';
 
@@ -8,9 +10,13 @@ function readRoute(): Route {
   const value = window.location.hash.slice(1) as Route;
   return routes.includes(value) ? value : 'accueil';
 }
-const titles: Record<Route, string> = { accueil: 'Accueil', jouer: 'Mise en place…', regles: 'Comment jouer', classement: 'Classement' };
+const titles: Record<Route, string> = { accueil: 'Accueil', jouer: 'Espace joueur', regles: 'Comment jouer', classement: 'Classement' };
 
 export function App() {
+  return <AuthProvider><AppContent /></AuthProvider>;
+}
+
+function AppContent() {
   const [route, setRoute] = useState<Route>(readRoute);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -32,10 +38,7 @@ export function App() {
       </header>
       {route === 'regles' && <Rules />}
       {route === 'classement' && <Ranking />}
-      {route === 'jouer' && <section className={styles.loading}>
-        <h2>La cuisine se prépare.</h2>
-        <p>Les commandes arrivent, à toi de jouer !</p>
-      </section>}
+      {route === 'jouer' && <PlayerGate />}
       <a className={styles.back} href="#accueil">{backLabel}</a>
     </main>
   );
