@@ -1,0 +1,8 @@
+.ranking {
+  margin-block: 24px;
+  select, button { font: inherit; padding: 10px 16px; border: 2px solid #15100d; background: #f7f1e6; color: #15100d; }
+  button { cursor: pointer; }
+  caption { text-align: left; padding-block: 12px; }
+  th[scope='row'] { font-weight: normal; overflow-wrap: anywhere; }
+}
+.tableWrapper { overflow-x: auto; }

@@ -81,7 +81,7 @@ pnpm dev:front
 pnpm build:front
 ```
 
-The menu uses hash routes (`#accueil`, `#jouer`, `#regles`, `#classement`) so direct links and browser back/forward work on static hosting without rewrite rules. The play screen is an explicit integration placeholder; it does not create a game session. The leaderboard does not display invented scores and awaits API integration.
+The menu uses hash routes (`#accueil`, `#jouer`, `#regles`, `#classement`) so direct links and browser back/forward work on static hosting without rewrite rules. The play screen is an explicit integration placeholder; it does not create a game session. The leaderboard requests real scores from the API for levels 1–3, with loading, empty and retry states.
 
 Keep React for navigation, forms, rules, leaderboard and accessible HUD. Mount Phaser in the play screen for the scene, sprites, collisions and keyboard loop; create/destroy its instance with the screen lifecycle and load it only when playing. Exchange discrete events (start, score, pause, finish) instead of updating React on every frame. Phaser integration belongs to the game issues, starting with #11.
 
@@ -91,3 +91,9 @@ The React/Vite front is connected to Vercel through its native GitHub integratio
 Front PRs receive deployment checks and preview links from the Vercel bot.
 See [Vercel setup and verification](docs/vercel.md) for monorepo settings,
 changed-file filtering and access to protected previews.
+
+## Leaderboard configuration
+
+Copy `front/.env.example` to `front/.env` and set `VITE_API_URL` to the public API origin (for example `http://localhost:3000`). Restart Vite after changing it. On Vercel, set it for the desired environment and rebuild. This value is public and must contain no credentials. Configure the API’s `CORS_ORIGIN` to allow the frontend origin.
+
+Open `#classement` and select a level: the front requests `GET /leaderboard/:levelId?limit=5`. It preserves server ranks and ordering; the current API ranks games, so a player may appear more than once. The best-score-per-player decision remains tracked in #15. Missing configuration, network/HTTP errors and invalid responses produce an explicit message without fallback scores. No Supabase token is needed for this public route.
