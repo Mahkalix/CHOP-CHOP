@@ -57,7 +57,7 @@ function LiveRanking() {
         <button onClick={() => { setResult({ status: 'loading' }); setAttempt(value => value + 1); }}>Réessayer</button>
       </>}
       {result.status === 'success' && (result.data.entries.length === 0
-        ? <p>Aucune partie classée pour ce niveau pour le moment.</p>
+        ? <p>Aucun score classé pour ce niveau pour le moment.</p>
         : <div className={styles.tableWrapper}><table>
           <caption>Les cinq meilleurs joueurs du niveau {level}</caption>
           <thead><tr><th scope="col">RANG</th><th scope="col">JOUEUR</th><th scope="col">POINTS</th></tr></thead>
