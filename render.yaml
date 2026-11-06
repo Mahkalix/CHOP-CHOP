@@ -1,0 +1,29 @@
+# Render Blueprint for the Fastify API (apps/api). The front is deployed separately on Vercel.
+# Secrets are never stored here: DATABASE_URL is entered in the Render dashboard (sync: false).
+services:
+  - type: web
+    name: chop-chop-api
+    runtime: node
+    plan: free
+    # The Supabase database is in eu-west-1 (Ireland): Frankfurt is the closest Render region.
+    region: frankfurt
+    branch: main
+    autoDeploy: true
+    # Install only the API and what it depends on (@chopchop/shared), from the workspace root.
+    buildCommand: corepack enable && pnpm install --frozen-lockfile --filter "@chopchop/api..."
+    startCommand: pnpm --filter @chopchop/api start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: TRUST_PROXY
+        value: "true"
+      # Origin of the deployed front, without a trailing slash. Comma-separated for several origins.
+      - key: CORS_ORIGIN
+        value: https://chop-chop-front.vercel.app
+      # Public value (it is also in the front bundle), used to verify player tokens.
+      - key: SUPABASE_URL
+        value: https://bkjgwjmqlpfwegtjihgc.supabase.co
+      # Supabase pooler URL (Project Settings > Database). Secret: enter it in the dashboard.
+      - key: DATABASE_URL
+        sync: false
