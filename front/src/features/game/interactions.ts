@@ -1,9 +1,14 @@
-/** Local kitchen inventory. Recipe preparation and assembly are separate features. */
-export type ItemKind = 'tomato' | 'meat' | 'plate';
-export type Item = { readonly id: number; readonly kind: ItemKind; readonly cutMs?: number };
+import type { Ingredient as SharedIngredient, ItemKind as SharedItemKind } from '@chopchop/shared';
+
+/** Local inventory types used by kitchen interactions and preparation. */
+export type ItemKind = SharedItemKind;
+export type Item =
+  | (Extract<SharedIngredient, { kind: 'tomato' }> & { readonly id: number; readonly cutMs: number })
+  | (Extract<SharedIngredient, { kind: 'meat' }> & { readonly id: number; readonly cookMs: number })
+  | { readonly id: number; readonly kind: 'plate' };
 export type Station =
   | { readonly id: string; readonly kind: 'source'; readonly item: ItemKind }
-  | { readonly id: string; readonly kind: 'surface'; readonly accepts: readonly ItemKind[] }
+  | { readonly id: string; readonly kind: 'surface'; readonly accepts: readonly ItemKind[]; readonly preparation?: 'chop' | 'cook' }
   | { readonly id: string; readonly kind: 'trash' }
   | { readonly id: string; readonly kind: 'delivery' };
 export type Inventory = {
@@ -14,14 +19,16 @@ export type Inventory = {
 };
 export type InteractionResult = { readonly inventory: Inventory; readonly message: string };
 
-export const itemLabels: Record<ItemKind, string> = {
-  tomato: 'Tomate', meat: 'Viande crue', plate: 'Assiette',
-};
+export function describeItem(item: Item): string {
+  if (item.kind === 'tomato') return item.state === 'chopped' ? 'Tomate découpée' : 'Tomate';
+  if (item.kind === 'meat') return { raw: 'Viande crue', cooked: 'Viande cuite', burnt: 'Viande brûlée' }[item.state];
+  return 'Assiette';
+}
 
-export const chopDuration = 3000;
-
-export function describeItem(item: Item) {
-  return item.kind === 'tomato' && item.cutMs === chopDuration ? 'Tomate découpée' : itemLabels[item.kind];
+function createItem(id: number, kind: ItemKind): Item {
+  if (kind === 'tomato') return { id, kind, state: 'raw', cutMs: 0 };
+  if (kind === 'meat') return { id, kind, state: 'raw', cookMs: 0 };
+  return { id, kind };
 }
 
 export function createInventory(): Inventory {
@@ -34,7 +41,7 @@ export function interact(inventory: Inventory, station: Station): InteractionRes
   const carried = inventory.carried;
   if (station.kind === 'source') {
     if (carried) return unchanged('Pose ton objet avant d’en prendre un autre.');
-    const item: Item = { id: inventory.nextItemId, kind: station.item };
+    const item = createItem(inventory.nextItemId, station.item);
     return {
       inventory: { ...inventory, carried: item, nextItemId: inventory.nextItemId + 1 },
       message: `${describeItem(item)} récupérée.`,
