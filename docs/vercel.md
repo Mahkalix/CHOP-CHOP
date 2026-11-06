@@ -37,6 +37,8 @@ Vercel's exit codes are inverted: **0 skips, 1 builds**.
 
 ## Verification
 
+`pnpm test` includes Git fixture tests for the ignored-build decision.
+
 1. Open a PR changing the front or `vercel.json` against `main`.
 2. Verify a Vercel deployment check and a `vercel[bot]` comment appear.
 3. Wait for Ready, then follow the preview URL and verify the rendered front.
