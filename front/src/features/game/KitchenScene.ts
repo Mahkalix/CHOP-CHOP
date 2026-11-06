@@ -79,7 +79,7 @@ export class KitchenScene extends Phaser.Scene {
     this.player.setCollideWorldBounds(true);
     this.physics.add.collider(this.player, obstacles);
     this.player.setVisible(false);
-    this.portrait = this.add.image(this.player.x, this.player.y, 'chef').setDisplaySize(128, 160);
+    this.portrait = this.add.image(this.player.x, this.player.y, 'chef').setDisplaySize(128, 160).setDepth(20);
     const camera = this.cameras.main;
     camera.setBounds(0, 0, 1440, 900).startFollow(this.player);
     const fitCamera = () => camera.setZoom(Math.max(this.scale.width / 1440, this.scale.height / 900));
@@ -94,12 +94,12 @@ export class KitchenScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.interactionKey.off('down', this.useClosestStation, this));
     this.placedItems.clear();
     this.cutKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.C);
-    this.knife = this.add.image(0, 0, 'knife').setOrigin(.13, .45).setDepth(21);
+    this.knife = this.add.image(0, 0, 'knife').setOrigin(.13, .45);
     this.restKnife();
     this.choppingCloud = this.add.graphics().setDepth(15);
     this.progressBars = this.add.graphics().setDepth(16);
     this.burningFlames = this.add.graphics().setDepth(14);
-    this.carriedItem = this.add.image(0, 0, 'item-whole').setScale(.72).setVisible(false).setDepth(20);
+    this.carriedItem = this.add.image(0, 0, 'item-whole').setScale(.72).setVisible(false).setDepth(22);
     this.publishStatus(null, 'Approche-toi d’un poste puis appuie sur E.');
   }
 
@@ -202,14 +202,14 @@ export class KitchenScene extends Phaser.Scene {
       const gripX = x + side * 37;
       const gripY = y + 3 - swing * 8;
       this.portrait.setFlipX(side > 0).setPosition(gripX + side * 26, gripY - 26);
-      this.knife.setPosition(gripX, gripY).setRotation(
+      this.knife.setDepth(21).setPosition(gripX, gripY).setRotation(
         (side > 0 ? Math.PI : 0) + side * swing * .55
       );
   }
 
   private restKnife() {
     const counter = this.stationSprites.get('chopping')!;
-    this.knife.setPosition(counter.x - 44, counter.y - 27).setAngle(-12);
+    this.knife.setDepth(10).setPosition(counter.x - 44, counter.y - 27).setAngle(-12);
   }
 
   private useClosestStation() {
