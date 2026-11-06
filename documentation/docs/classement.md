@@ -10,7 +10,7 @@ L’équipe a retenu trois niveaux avec un classement par niveau. L’API est pr
 
 Les joueurs comparent leurs résultats pour un même niveau parmi les trois prévus. Le choix entre toutes les parties terminées et le meilleur score par joueur reste à trancher : l’API actuelle classe toutes les parties terminées, et un même joueur peut apparaître plusieurs fois.
 
-Associer les scores à un identifiant de compte persistant, distinct du pseudo affiché.
+Associer les scores à l’identifiant du compte anonyme Supabase du joueur, distinct du pseudo affiché. Ce compte est lié à la session du navigateur : si le joueur efface ses données, il devient un nouveau joueur et ses anciens scores ne lui sont plus rattachés.
 
 Afficher rang, pseudo et score ; la mise en évidence du joueur connecté reste à valider.
 
