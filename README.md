@@ -1,81 +1,61 @@
 # CHOP-CHOP
 
-A solo, desktop-only, Overcooked-like browser game: 5 levels and a per-level leaderboard.
+CHOP-CHOP est un jeu web de cuisine solo, jouable au clavier sur ordinateur. L'équipe prévoit **trois niveaux** et un classement par niveau. La priorité est de rendre le niveau 1 jouable de bout en bout, de la connexion au résultat classé.
 
-## Stack
+## Sites en ligne
 
-- **Front:** Phaser 3 + TypeScript + Vite (`apps/game`, to be added)
-- **Back:** Node.js + Fastify + Drizzle ORM, PostgreSQL hosted on Supabase (`apps/api`)
-- **Shared:** Zod schemas and types used by both sides (`packages/shared`, imported as `@chopchop/shared`)
-- pnpm monorepo, Node 22+
+| | Site en ligne | Projet Vercel |
+| --- | --- | --- |
+| Front, prototype actuel | [Ouvrir le front](https://chop-chop-front.vercel.app/) | [Voir le projet Vercel](https://vercel.com/mahkalixs-projects/chop-chop-front) |
+| Documentation Docusaurus | [Lire la documentation](https://chop-chop-docs.vercel.app/) | [Voir le projet Vercel](https://vercel.com/mahkalixs-projects/chop-chop-docs) |
 
-## Getting started (API)
+La partie complète reste à intégrer au front.
 
-```bash
+## En local
+
+Prérequis : **Node.js 22+** et **pnpm 11** pour le jeu. Les liens `localhost` fonctionnent pendant que les serveurs sont lancés.
+
+### Front
+
+Depuis la racine du dépôt :
+
+```sh
 pnpm install
-cp apps/api/.env.example apps/api/.env   # then fill in DATABASE_URL
-pnpm dev:api                              # http://localhost:3000
+pnpm dev:front
 ```
 
-`DATABASE_URL` is the Supabase **Session pooler** connection string
-(Supabase dashboard > Connect > Direct > Method: Session pooler). Ask the team for
-the password; never commit `.env`. `SUPABASE_URL` is the project URL, used to verify player tokens.
+Ouvrir le [front local](http://localhost:5173/) (port Vite par défaut).
 
-Only one person should apply migrations, to avoid concurrent schema changes:
+### Documentation Docusaurus
 
-```bash
-pnpm --filter @chopchop/api db:generate   # after editing apps/api/src/db/schema.ts
-pnpm --filter @chopchop/api db:migrate
+Dans un autre terminal, depuis la racine du dépôt :
+
+```sh
+cd documentation
+npm ci
+npm start -- --port 3001
 ```
 
-Other commands: `pnpm test`, `pnpm typecheck`.
+Ouvrir la [documentation locale](http://localhost:3001/). Le port 3001 laisse le port 3000 libre pour l'API.
 
-## API
+### API, si nécessaire
 
-Players sign up and log in **directly with Supabase Auth** from the front end (`supabase-js`,
-email + password). The API never sees passwords: protected routes expect the access token as
-`Authorization: Bearer <token>`, and the API verifies it against the project's public signing keys.
-Only the data needed by the leaderboard is stored server-side (`joueur`, `niveau`, `version_regles`,
-`partie`); recipes, ingredients and orders live in the game config.
+Depuis la racine du dépôt, créer son fichier de configuration local à partir de [`apps/api/.env.example`](apps/api/.env.example), renseigner les valeurs demandées à l'équipe, puis lancer :
 
-| Method | Route | Auth | Description |
-|---|---|---|---|
-| GET | `/health` | no | Liveness check |
-| GET | `/me` | yes | Own profile, `404` if no pseudo chosen yet |
-| PUT | `/me` | yes | Create or change the pseudo (`{ "pseudo": "Gordon" }`), `409` if taken |
-| POST | `/games` | yes | Start a game (`{ "levelId": 1 }`), returns `201 { gameId, levelId, startedAt }` |
-| POST | `/games/:id/finish` | yes | End a game (`{ "score": 300, "bestCombo": 4 }`), returns `{ rank, score, durationMs }` |
-| POST | `/games/:id/abandon` | yes | Give up a game, `204`. Abandoned games are never ranked |
-| GET | `/leaderboard/:levelId?limit=10` | no | Top games of a level (limit max 50) |
+```sh
+cp apps/api/.env.example apps/api/.env
+pnpm dev:api
+```
 
-Typical flow: sign up with Supabase Auth, `PUT /me` once to choose a pseudo, then for each game
-`POST /games` when the level starts and `POST /games/:id/finish` when the timer ends.
+Ne jamais commiter le fichier `.env` ni les secrets. Vérifications du monorepo : `pnpm typecheck` et `pnpm test`.
 
-- `pseudo`: 2-16 characters, letters/digits/space/`_`/`-` (trimmed), unique whatever the case
-- `levelId`: a number from 1 to 5
-- The **duration is measured by the server** (time between start and finish), never sent by the client
-- Finish errors: `400` invalid body, `404` unknown game or not yours, `409` game already ended,
-  `422` implausible score (the game is then closed)
-- `POST /games` returns `403` if the player has no profile yet
-- `GET /leaderboard/:levelId` returns
-  `{ "levelId": 1, "entries": [{ "rank", "pseudo", "score", "durationMs", "finishedAt" }] }`,
-  sorted by score (desc), then duration (asc), then finish time
+## Repères dans le dépôt
 
-Scores are computed client-side, so the API applies plausibility bounds:
+| Chemin | Rôle |
+| --- | --- |
+| [`front/`](front/) | Interface React 19, TypeScript, Vite et SCSS ; scènes de jeu avec Phaser. |
+| [`apps/api/`](apps/api/) | API Fastify 5, Drizzle et accès à PostgreSQL sur Supabase. |
+| [`packages/shared/`](packages/shared/) | Types et schémas Zod communs au front et à l'API. |
+| [`documentation/`](documentation/) | Site Docusaurus, installé et construit séparément avec npm. |
 
-- the score cannot exceed `LEVEL_LIMITS[level].maxScore` (`packages/shared/src/levels.ts`, placeholder values)
-- a game ends when the timer of its rules version runs out, so the server-measured duration must be within
-  `duree_partie_secondes` minus 5 s / plus 60 s (`GAME_DURATION_TOLERANCE_MS`, to allow for lag and pauses)
-- a player has one game in progress at most: starting a new one abandons the previous one
-
-## Deployment
-
-Set `DATABASE_URL`, `PORT` and `CORS_ORIGIN` (the front's URL) as environment variables on
-the host, then run `pnpm --filter @chopchop/api start`.
-
-## Front previews
-
-The React/Vite front is connected to Vercel through its native GitHub integration.
-Front PRs receive deployment checks and preview links from the Vercel bot.
-See [Vercel setup and verification](docs/vercel.md) for monorepo settings,
-changed-file filtering and access to protected previews.
+Les [conventions de travail](documentation/docs/conventions.md), l'[architecture et les routes API](documentation/docs/architecture.md) et la [configuration Vercel du front](docs/vercel.md) donnent le détail. Le travail en cours se suit dans les [issues](https://github.com/Mahkalix/CHOP-CHOP/issues) et le [Project](https://github.com/users/Mahkalix/projects/3).

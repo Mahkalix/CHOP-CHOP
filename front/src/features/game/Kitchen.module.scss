@@ -1,0 +1,10 @@
+.kitchen { position: fixed; inset: 0; width: 100%; height: 100dvh; overflow: hidden; font-family: Inter, sans-serif; }
+.canvas { position: absolute; inset: 0; }
+.canvas canvas { display: block; }
+.exit, .fullscreen, .hint { position: absolute; background: #f7f1e6; color: black; font-weight: 600; }
+.exit, .fullscreen { top: 12px; padding: 8px 10px; border: 2px solid black; font: inherit; font-size: clamp(11px, 1.2vw, 16px); font-weight: 600; }
+.exit { right: 12px; }
+.fullscreen { left: 12px; cursor: pointer; }
+.inventory { position: absolute; top: 64px; left: 12px; width: min(520px, calc(100% - 24px)); padding: 10px 14px; background: #f7f1e6; border: 2px solid #922f1f; font-size: clamp(12px, 1.3vw, 18px); line-height: 1.35; }
+.inventory p { margin: 6px 0 0; }
+.hint { bottom: 12px; left: 50%; transform: translateX(-50%); margin: 0; padding: 10px 16px; width: max-content; max-width: 95%; text-align: center; font-size: clamp(11px, 1.3vw, 16px); }
