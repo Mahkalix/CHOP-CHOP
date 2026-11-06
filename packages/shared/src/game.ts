@@ -81,9 +81,15 @@ export interface StartGameResponse {
 }
 
 export interface FinishGameResponse {
+  /** Place of the player's best game on this level (not necessarily the game just played). */
   rank: number;
+  /** Score of the game just played. */
   score: number;
   durationMs: number;
+  /** Best score of the player on this level, this game included. */
+  bestScore: number;
+  /** True if this game is now the player's best one on this level (new record). */
+  isRecord: boolean;
 }
 
 export interface LeaderboardEntry {

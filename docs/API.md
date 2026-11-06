@@ -37,7 +37,7 @@ Tout ce qu'il faut pour appeler l'API depuis le front. Le code de référence es
 4. (nouveau) PUT /me { pseudo }               une seule fois
 5. POST /games { levelId }                 ← au début du niveau, garder gameId
 6. ...le joueur joue...
-7. POST /games/:gameId/finish { score, bestCombo }   ← à la fin du chrono → rang
+7. POST /games/:gameId/finish { score, bestCombo }   ← à la fin du chrono → rang (place de son meilleur score)
    ou POST /games/:gameId/abandon                    ← si le joueur quitte
 8. GET  /leaderboard/:levelId              ← afficher le classement
 ```
@@ -139,7 +139,7 @@ Par adresse IP : 60 requêtes/minute en général, et **20/minute** sur `POST /g
 | `Profile` | `{ id: string; pseudo: string }` |
 | `PseudoAvailabilityResponse` | `{ pseudo: string; available: boolean }` |
 | `StartGameResponse` | `{ gameId: string; levelId: number; startedAt: string }` |
-| `FinishGameResponse` | `{ rank: number; score: number; durationMs: number }` |
+| `FinishGameResponse` | `{ rank: number; score: number; durationMs: number; bestScore: number; isRecord: boolean }` |
 | `LeaderboardEntry` | `{ rank; pseudo; score; durationMs; finishedAt }` |
 | `LeaderboardResponse` | `{ levelId: number; entries: LeaderboardEntry[] }` |
 | `PlayerGame` | `{ gameId; levelId; score; durationMs; finishedAt }` |
@@ -246,7 +246,7 @@ Corps : `{ "score": 300, "bestCombo": 4 }`
 
 Réponses :
 
-- `200` : `{ "rank": 3, "score": 300, "durationMs": 181500 }` : `rank` est la place dans le classement du niveau
+- `200` : `{ "rank": 3, "score": 300, "durationMs": 181500, "bestScore": 300, "isRecord": true }` : `rank` est la place du **meilleur score du joueur** dans le classement du niveau (si la partie qui vient de finir ne bat pas son record, c'est la place de son record). `score` et `durationMs` sont ceux de la partie qui vient de finir. `bestScore` est le meilleur score du joueur sur ce niveau (cette partie comprise) et `isRecord` vaut `true` si cette partie est devenue sa meilleure : afficher « nouveau record » avec `isRecord`
 - `400` : corps invalide
 - `404` : partie inconnue, identifiant mal formé, ou partie d'un autre joueur
 - `409` : partie déjà terminée ou abandonnée
@@ -285,7 +285,7 @@ Paramètre : `?limit=10` (1 à 50, 10 par défaut).
 }
 ```
 
-Tri : score décroissant, puis durée croissante, puis date de fin. Un même joueur peut apparaître plusieurs fois (une ligne par partie terminée). Seules les parties terminées comptent.
+Une ligne par joueur : son **meilleur score** sur le niveau. Rejouer avec un score plus faible ne change rien ; à score égal, la partie la plus rapide du joueur est gardée. Tri : score décroissant, puis durée croissante, puis date de fin (le plus ancien d'abord), donc deux joueurs n'ont jamais le même rang. Seules les parties terminées comptent (jamais les abandonnées ni celles en cours).
 
 - `400` : `{ "error": "Invalid level or query" }` si le niveau n'est pas de 1 à 5 ou si `limit` est invalide.
 
@@ -296,6 +296,10 @@ Tri : score décroissant, puis durée croissante, puis date de fin. Un même jou
 **Comment savoir si je dois afficher l'écran du pseudo ?** Faire `GET /me` : `404` = écran du pseudo, `200` = passer à l'accueil.
 
 **Le joueur recharge la page en pleine partie ?** La session Supabase est conservée, donc il reste le même joueur. La partie en cours n'est pas récupérable : faire un nouveau `POST /games` (l'ancienne est abandonnée).
+
+**Le joueur rejoue un niveau, que devient son classement ?** Le classement garde une seule ligne par joueur : son meilleur score. Un score plus faible ne remplace pas le record, et le `rank` renvoyé par `finish` est alors la place de ce record. Sur l'écran de fin, utiliser `isRecord` de la réponse de `finish` pour afficher « nouveau record », et `bestScore` pour montrer le record actuel.
+
+**Comment mettre en évidence le joueur connecté dans le classement ?** `LeaderboardEntry` ne contient pas d'identifiant, seulement le `pseudo`. Les pseudos sont uniques (sans tenir compte de la casse) : comparer avec le pseudo de `GET /me`, sans tenir compte de la casse. S'il n'est pas dans les `limit` premiers, il n'y a pas encore de route pour obtenir sa place hors de la liste.
 
 **Le score est refusé en `422`, que faire ?** Afficher une erreur et proposer de rejouer. Vérifier d'abord que le chrono du jeu fait bien 180 s et que le score ne dépasse pas le maximum du niveau.
 
