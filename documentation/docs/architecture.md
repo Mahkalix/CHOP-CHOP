@@ -33,9 +33,9 @@ Les tests de l’API utilisent Vitest. Les tables décrites sont `joueur`, `nive
 
 ## Authentification et parcours d’une partie
 
-Le parcours retenu est une connexion par pseudo seul, sans email ni mot de passe : le front ouvre une session anonyme avec Supabase Auth (`signInAnonymously()`), puis le joueur choisit son pseudo. Le SDK `@supabase/supabase-js` n’est pas encore installé dans `front/` et ce parcours reste à intégrer. L’API, déjà présente, ne reçoit aucun identifiant : elle vérifie le jeton `Authorization: Bearer <token>` à partir de `SUPABASE_URL`.
+Le parcours retenu est une connexion par pseudo seul, sans email ni mot de passe : le front ouvre une session anonyme avec Supabase Auth (`signInAnonymously()`), puis le joueur choisit son pseudo. Le front utilise `@supabase/supabase-js` pour ouvrir et restaurer cette session, lire le profil et créer le pseudo avant d’afficher la cuisine Phaser. Le parcours doit encore être validé sur les services déployés. L’API, déjà présente, ne reçoit aucun identifiant : elle vérifie le jeton `Authorization: Bearer <token>` à partir de `SUPABASE_URL`.
 
-Le parcours cible, encore à intégrer de bout en bout, est : connexion anonyme → `GET /me` (un `404` signale un nouveau joueur) → choix du pseudo avec `PUT /me`, une seule fois → `POST /games` au démarrage du niveau → `POST /games/:id/finish` à la fin du chronomètre.
+Le parcours cible, dont le cycle de partie reste à intégrer de bout en bout, est : connexion anonyme → `GET /me` (un `404` signale un nouveau joueur) → choix du pseudo avec `PUT /me`, une seule fois → `POST /games` au démarrage du niveau → `POST /games/:id/finish` à la fin du chronomètre.
 
 | Méthode | Route | Authentification | Fonction |
 | --- | --- | --- | --- |

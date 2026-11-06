@@ -31,7 +31,7 @@ Si deux sources se contredisent, consigner l'écart dans la PR ou l'issue et dem
 
 ## État de cette copie du dépôt
 
-Cette description reflète les fonctionnalités fusionnées dans `main` lors de la dernière vérification. Vérifier l'état actuel de la branche avant toute intervention : la cuisine Phaser est intégrée dans l'écran « jouer », mais le cycle complet des recettes, commandes et scores n'est pas encore raccordé. L'authentification anonyme côté front reste à intégrer.
+Cette description reflète les fonctionnalités fusionnées dans `main` lors de la dernière vérification. Vérifier l'état actuel de la branche avant toute intervention : la cuisine Phaser est intégrée dans l'écran « jouer », mais le cycle complet des recettes, commandes et scores n'est pas encore raccordé. Le front ouvre une session anonyme Supabase et charge le profil avant la cuisine ; la recette sur les services déployés et le cycle complet de partie restent à intégrer.
 
 Le back présent fournit authentification des appels API, profil, ouverture, fin et abandon de partie, et lecture du classement. Il ne fournit pas le gameplay. Les tests de l'API utilisent un dépôt en mémoire (`api.test.ts`) ; `auth.test.ts` vérifie les jetons avec un faux serveur de clés. Un essai manuel avec Supabase a été rapporté dans la PR d'intégration ; il ne remplace pas un test automatisé avec PostgreSQL réel.
 

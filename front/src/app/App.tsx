@@ -1,4 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { AuthProvider } from '../features/auth/AuthProvider';
+import { PlayerGate } from '../features/auth/PlayerGate';
 import { Ranking } from '../features/leaderboard/Ranking';
 import { HomePage } from '../features/home/HomePage';
 import styles from '../features/home/HomePage.module.scss';
@@ -11,9 +13,13 @@ function readRoute(): Route {
   const value = window.location.hash.slice(1) as Route;
   return routes.includes(value) ? value : 'accueil';
 }
-const titles: Record<Route, string> = { accueil: 'Accueil', jouer: 'Mise en place…', regles: 'Comment jouer', classement: 'Classement' };
+const titles: Record<Route, string> = { accueil: 'Accueil', jouer: 'Espace joueur', regles: 'Comment jouer', classement: 'Classement' };
 
 export function App() {
+  return <AuthProvider><AppContent /></AuthProvider>;
+}
+
+function AppContent() {
   const [route, setRoute] = useState<Route>(readRoute);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -26,7 +32,10 @@ export function App() {
     heading.current?.focus();
   }, [route]);
   if (route === 'accueil') return <HomePage />;
-  if (route === 'jouer') return <Suspense fallback={<p>MISE EN PLACE…</p>}><Kitchen /></Suspense>;
+  if (route === 'jouer') return <>
+    <PlayerGate><Suspense fallback={<p>MISE EN PLACE…</p>}><Kitchen /></Suspense></PlayerGate>
+    <a className={styles.back} href="#accueil">RETOUR À L’ACCUEIL</a>
+  </>;
   const backLabel = route === 'regles' ? 'COMPRIS, RETOUR' : 'RETOUR';
   return (
     <main className={styles.page} data-screen={route}>
@@ -36,6 +45,7 @@ export function App() {
       </header>
       {route === 'regles' && <Rules />}
       {route === 'classement' && <Ranking />}
+
       <a className={styles.back} href="#accueil">{backLabel}</a>
     </main>
   );

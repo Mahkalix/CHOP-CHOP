@@ -67,3 +67,13 @@ Copier `front/.env.example` vers `front/.env` et renseigner `VITE_API_URL` avec 
 Ouvrir `#classement` et sélectionner un niveau parmi les trois prévus. Le front demande `GET /leaderboard/:levelId?limit=5` et conserve les rangs et l’ordre renvoyés par l’API. Depuis la fusion de #49, le classement retient le meilleur score de chaque joueur par niveau ; un joueur n’apparaît qu’une fois. Le serveur départage les égalités par durée, puis par date. Cette route publique ne nécessite aucun jeton Supabase.
 
 Les états de chargement, liste vide, erreur et nouvelle tentative sont gérés sans scores fictifs. Une configuration absente affiche « Classement indisponible ». Les requêtes précédentes sont annulées lors d’un changement de niveau ou lorsque l’écran est quitté. La validation avec les services déployés reste nécessaire après configuration de l’API et de CORS.
+
+## Session joueur Supabase
+
+Copier `front/.env.example` vers `front/.env`, puis renseigner `VITE_API_URL`, `VITE_SUPABASE_URL` et `VITE_SUPABASE_PUBLISHABLE_KEY` (clé publique publishable ou anon historique). Ne jamais utiliser de clé secrète, service_role ni de mot de passe de base côté front. Redémarrer Vite ou reconstruire le déploiement après modification.
+
+Activer **Anonymous Sign-Ins** dans Supabase Auth. Le front et l’API doivent utiliser le même projet Supabase ; le vérificateur API accepte les signatures ES256/RS256. Autoriser l’origine du front dans `CORS_ORIGIN` côté API.
+
+Depuis Jouer, ouvrir une session anonyme, choisir son pseudo une seule fois puis accéder à la cuisine Phaser. La session est conservée dans le navigateur et son jeton est rafraîchi par le SDK. Seul le jeton Bearer est transmis à `GET/PUT /me` ; aucun email ni mot de passe n’est demandé. Effacer les données du navigateur ou quitter la session anonyme fait perdre l’accès à ce profil. Le cycle de partie (`POST /games`, fin et abandon) reste une intégration séparée.
+
+Vérifier avec `pnpm typecheck`, `pnpm test` et `pnpm build:front`. Les tests front simulent Supabase et l’API ; une recette sur les services déployés reste nécessaire.

@@ -12,7 +12,7 @@ Ces conventions accompagnent `CONTEXT.md`, le contexte de travail à jour à la 
 - Retirer les `console.log` de débogage avant la revue.
 - Centraliser les types et schémas échangés entre le front et le back dans `packages/shared`, importé avec `@chopchop/shared`.
 
-Le front installé utilise React 19, TypeScript 5, Vite 7 et des modules SCSS. Le back utilise Fastify 5, Drizzle, Zod, PostgreSQL via `pg` et TypeScript 7. Phaser et le SDK Supabase côté front sont prévus, mais pas encore installés. Les limites de niveaux et les contrats de données partagés doivent être réutilisés côté front plutôt que recopiés.
+Le front installé utilise React 19, TypeScript 5, Vite 7 et des modules SCSS. Le back utilise Fastify 5, Drizzle, Zod, PostgreSQL via `pg` et TypeScript 7. Phaser et le SDK Supabase sont installés côté front. Les limites de niveaux et les contrats de données partagés doivent être réutilisés côté front plutôt que recopiés.
 
 Le code, ses identifiants et ses commentaires techniques sont écrits en anglais. Les textes visibles dans l'interface du jeu sont en français. Conserver les contrats et données existants lors d'un changement de nom, ou coordonner leur migration.
 
