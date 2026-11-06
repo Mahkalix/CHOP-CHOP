@@ -59,13 +59,13 @@ function LiveRanking() {
       {result.status === 'success' && (result.data.entries.length === 0
         ? <p>Aucune partie classée pour ce niveau pour le moment.</p>
         : <div className={styles.tableWrapper}><table>
-          <caption>Les cinq premières parties du niveau {level}</caption>
+          <caption>Les cinq meilleurs joueurs du niveau {level}</caption>
           <thead><tr><th scope="col">RANG</th><th scope="col">JOUEUR</th><th scope="col">POINTS</th></tr></thead>
           <tbody>{result.data.entries.map((entry, index) => <tr key={index}>
             <td>{entry.rank}</td><th scope="row">{entry.pseudo}</th><td>{entry.score}</td>
           </tr>)}</tbody>
         </table></div>)}
     </div>
-    <p>Parties classées par score, puis par durée. Un joueur peut apparaître plusieurs fois.</p>
+    <p>Un meilleur score par joueur et par niveau. Départage par durée, puis par date.</p>
   </section>;
 }
