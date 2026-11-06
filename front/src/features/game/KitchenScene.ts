@@ -39,7 +39,7 @@ export class KitchenScene extends Phaser.Scene {
     for (const key of new Set(stations.map(station => station.texture))) {
       this.load.image(key, `/kitchen/${key}.png`);
     }
-    for (const name of ['whole', 'chopped', 'meat', 'cooked', 'burned', 'plate']) {
+    for (const name of ['whole', 'chopped', 'meat', 'cooked', 'burnt', 'plate']) {
       this.load.svg('item-' + name, '/kitchen/items/' + name + '.svg');
     }
     this.load.svg('pan', '/kitchen/items/pan.svg');
@@ -137,7 +137,7 @@ export class KitchenScene extends Phaser.Scene {
     this.choppingCloud.clear();
     this.restKnife();
     const tomato = target && this.inventory.surfaces[target.id];
-    if (target?.id === 'chopping' && tomato?.kind === 'tomato' && tomato.state === 'whole'
+    if (target?.id === 'chopping' && tomato?.kind === 'tomato' && tomato.state === 'raw'
       && this.cutKey.isDown && !this.inventory.carried) {
       this.animateChop(target.x + 72, target.y + 68, tomato.cutMs / 270);
     }

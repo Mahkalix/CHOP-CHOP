@@ -1,8 +1,10 @@
+import type { Ingredient as SharedIngredient, ItemKind as SharedItemKind } from '@chopchop/shared';
+
 /** Local inventory types used by kitchen interactions and preparation. */
-export type ItemKind = 'tomato' | 'meat' | 'plate';
+export type ItemKind = SharedItemKind;
 export type Item =
-  | { readonly id: number; readonly kind: 'tomato'; readonly state: 'whole' | 'chopped'; readonly cutMs: number }
-  | { readonly id: number; readonly kind: 'meat'; readonly state: 'raw' | 'cooked' | 'burned'; readonly cookMs: number }
+  | (Extract<SharedIngredient, { kind: 'tomato' }> & { readonly id: number; readonly cutMs: number })
+  | (Extract<SharedIngredient, { kind: 'meat' }> & { readonly id: number; readonly cookMs: number })
   | { readonly id: number; readonly kind: 'plate' };
 export type Station =
   | { readonly id: string; readonly kind: 'source'; readonly item: ItemKind }
@@ -19,12 +21,12 @@ export type InteractionResult = { readonly inventory: Inventory; readonly messag
 
 export function describeItem(item: Item): string {
   if (item.kind === 'tomato') return item.state === 'chopped' ? 'Tomate découpée' : 'Tomate';
-  if (item.kind === 'meat') return { raw: 'Viande crue', cooked: 'Viande cuite', burned: 'Viande brûlée' }[item.state];
+  if (item.kind === 'meat') return { raw: 'Viande crue', cooked: 'Viande cuite', burnt: 'Viande brûlée' }[item.state];
   return 'Assiette';
 }
 
 function createItem(id: number, kind: ItemKind): Item {
-  if (kind === 'tomato') return { id, kind, state: 'whole', cutMs: 0 };
+  if (kind === 'tomato') return { id, kind, state: 'raw', cutMs: 0 };
   if (kind === 'meat') return { id, kind, state: 'raw', cookMs: 0 };
   return { id, kind };
 }

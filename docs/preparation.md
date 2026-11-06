@@ -1,6 +1,6 @@
 # Préparation et cuisson — prototype #17
 
-Le jeu reste entièrement côté front pour ces gestes : aucun appel API ni changement de BDD. Les objets ont une identité stable et un état explicite utilisé par les étapes suivantes : tomate `whole`/`chopped`, viande `raw`/`cooked`/`burned`, assiette vide. Les types sont locaux à `front/src/features/game/interactions.ts` ; aucune modification de `packages/shared`.
+Le jeu reste entièrement côté front pour ces gestes : aucun appel API ni changement de BDD. Les objets ont une identité stable et un état explicite utilisé par les étapes suivantes : tomate `raw`/`chopped`, viande `raw`/`cooked`/`burnt`, assiette vide. Les états et types métier viennent de `@chopchop/shared` (#14) ; le front ajoute les identités et la progression locale dans `interactions.ts`. Aucune modification de `packages/shared`.
 
 ## Parcours à essayer
 
@@ -12,7 +12,7 @@ Le jeu reste entièrement côté front pour ces gestes : aucun appel API ni chan
 
 ## Valeurs et décisions ouvertes
 
-`preparationTimings`, dans `front/src/features/game/preparation.ts`, centralise les durées déjà affichées sur la page de règles : découpe **3 s**, cuisson **8 s**, puis brûlure après **6 s supplémentaires**. Ce sont les paramètres du prototype, pas une décision métier finale. La durée définitive et la conservation de la progression lors d’une interruption ou d’un retrait restent à confirmer par l’équipe avant validation finale de #17.
+`preparationTimings`, dans `front/src/features/game/preparation.ts`, convertit en millisecondes les durées de `PREPARATIONS` importées de `@chopchop/shared` : découpe **3 s**, cuisson **8 s**, puis brûlure après **6 s supplémentaires**. Ce sont les paramètres du prototype, pas une décision métier finale. La durée définitive et la conservation de la progression lors d’une interruption ou d’un retrait restent à confirmer par l’équipe avant validation finale de #17.
 
 La progression utilise le temps de simulation Phaser. Un onglet suspendu ne garantit donc pas une cuisson en temps réel hors écran ; le futur timer de partie et la pause doivent être coordonnés dans #19 avant raccordement aux sessions API. L’assemblage et la livraison restent dans #18 ; aucune livraison ni aucun score n’est simulé ici.
 
