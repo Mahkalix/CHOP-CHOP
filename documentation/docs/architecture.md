@@ -10,7 +10,9 @@ L’API est présente dans ce `main` local. Le front affiche encore une page d�
 
 ## Stack et responsabilités
 
-![Schéma de la stack CHOP-CHOP : front sur Vercel, API Fastify, Auth et PostgreSQL sur Supabase, Docusaurus et outils du projet](/img/stack-chop-chop.svg)
+![Schéma illustré de la stack CHOP-CHOP avec les logos de Vercel, React, Vite, TypeScript, Phaser, Fastify, Drizzle, Supabase, PostgreSQL, Docusaurus et GitHub](/img/stack-chop-chop.png)
+
+[Ouvrir le schéma en grand (SVG)](/img/stack-chop-chop.svg). Logos des technologies : [Simple Icons](https://simpleicons.org/) et [logo pixel art officiel de Phaser](https://phaser.io/download/logo).
 
 Le schéma distingue les services configurés des intégrations et hébergements encore à réaliser. Vercel sert uniquement le front statique ; le lieu d’hébergement de l’API et la publication de Docusaurus restent à confirmer.
 
