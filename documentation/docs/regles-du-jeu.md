@@ -41,7 +41,7 @@ Une tomate brute ou une viande crue ou brûlée ne convient pas. Une viande qui 
 
 ## Temps, score et combos
 
-La règle `v1` fixe la durée à **3 minutes**, selon le contexte du 6 novembre 2026. Cinq niveaux sont prévus, avec un classement par niveau. Chaque commande possède son propre délai : servir un plat exige une recette exacte et une commande encore active. Le barème ci-dessous reste proposé pour le gameplay.
+La règle `v1` fixe la durée à **3 minutes**, selon le contexte du 6 novembre 2026. Trois niveaux sont prévus, avec un classement par niveau. Chaque commande possède son propre délai : servir un plat exige une recette exacte et une commande encore active. Le barème ci-dessous reste proposé pour le gameplay.
 
 - Une livraison valide rapporte 100 points de base et jusqu’à 50 points de rapidité, avant application du multiplicateur.
 - Les livraisons consécutives font progresser le combo : ×1, ×2, puis ×3 au maximum.

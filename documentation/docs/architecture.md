@@ -21,7 +21,7 @@ Le jeu utilise un monorepo pnpm avec Node.js 22 ou supérieur, pnpm 11 et les wo
 | `packages/shared/` — `@chopchop/shared` | Types, schémas Zod et limites de niveaux | Contrats communs au front et au back |
 | GitHub Actions | `pnpm typecheck`, `pnpm test` | Vérification de chaque PR et de `main` |
 
-Les tests de l’API utilisent Vitest. Les tables décrites sont `joueur`, `niveau`, `version_regles` et `partie`. Les migrations `0000` à `0004` sont mentionnées ; `0003` initialise cinq niveaux et la règle `v1` de 180 secondes. Les noms des niveaux restent provisoires.
+Les tests de l’API utilisent Vitest. Les tables décrites sont `joueur`, `niveau`, `version_regles` et `partie`. Les migrations `0000` à `0004` sont mentionnées ; `0003` initialise cinq entrées de niveau en base ainsi que la règle `v1` de 180 secondes. Le jeu utilise les entrées 1 à 3. Les noms des niveaux restent provisoires.
 
 ## Authentification et parcours d’une partie
 
@@ -49,6 +49,6 @@ Ces contrôles ne constituent pas une simulation serveur du gameplay. L’enregi
 
 ## Décisions et intégration à terminer
 
-Choisir le moteur du jeu et l’intégrer dans `front/`, aligner les cinq niveaux avec Figma, fusionner l’API après revue et vérifier le parcours complet. Les versions TypeScript du front et du back diffèrent selon le contexte ; les harmoniser si nécessaire. Tout changement de durée doit s’accompagner d’une nouvelle version des règles.
+Choisir le moteur du jeu et l’intégrer dans `front/`, aligner les trois niveaux avec Figma, fusionner l’API après revue et vérifier le parcours complet. Les versions TypeScript du front et du back diffèrent selon le contexte ; les harmoniser si nécessaire. Tout changement de durée doit s’accompagner d’une nouvelle version des règles.
 
 Voir le [design](./design.md), le [classement](./classement.md), les [critères de validation](./validation.md) et les [conventions de travail](./conventions.md).
