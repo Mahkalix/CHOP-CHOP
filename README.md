@@ -84,3 +84,10 @@ pnpm build:front
 The menu uses hash routes (`#accueil`, `#jouer`, `#regles`, `#classement`) so direct links and browser back/forward work on static hosting without rewrite rules. The play screen is an explicit integration placeholder; it does not create a game session. The leaderboard does not display invented scores and awaits API integration.
 
 Keep React for navigation, forms, rules, leaderboard and accessible HUD. Mount Phaser in the play screen for the scene, sprites, collisions and keyboard loop; create/destroy its instance with the screen lifecycle and load it only when playing. Exchange discrete events (start, score, pause, finish) instead of updating React on every frame. Phaser integration belongs to the game issues, starting with #11.
+
+## Front previews
+
+The React/Vite front is connected to Vercel through its native GitHub integration.
+Front PRs receive deployment checks and preview links from the Vercel bot.
+See [Vercel setup and verification](docs/vercel.md) for monorepo settings,
+changed-file filtering and access to protected previews.
