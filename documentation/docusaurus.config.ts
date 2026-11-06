@@ -3,13 +3,13 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'CHOP-CHOP',
-  tagline: 'Un jeu de cuisine solo. Cinq niveaux, un classement par niveau.',
+  title: 'CHOP-CHOP · Documentation',
+  tagline: 'Documentation du jeu CHOP-CHOP : gameplay, règles, architecture, design et équipe.',
   favicon: 'img/chopchop-logo.svg',
   // Use the standard toolchain to avoid native SWC cache issues on Windows.
   future: {v4: true, faster: false},
   // Set DOCUSAURUS_URL and DOCUSAURUS_BASE_URL to the actual hosting target.
-  url: process.env.DOCUSAURUS_URL || 'http://localhost:3000',
+  url: process.env.DOCUSAURUS_URL || 'https://chop-chop-docs-mahkalixs-projects.vercel.app',
   baseUrl: process.env.DOCUSAURUS_BASE_URL || '/',
   onBrokenLinks: 'throw',
   markdown: {hooks: {onBrokenMarkdownLinks: 'throw'}},
@@ -23,6 +23,13 @@ const config: Config = {
     theme: {customCss: './src/css/custom.css'},
   } satisfies Preset.Options]],
   themeConfig: {
+    image: 'img/chopchop-social.png',
+    metadata: [
+      {name: 'theme-color', content: '#f4efe6'},
+      {property: 'og:locale', content: 'fr_FR'},
+      {property: 'og:image:alt', content: 'Logo CHOP-CHOP'},
+      {name: 'twitter:image:alt', content: 'Logo CHOP-CHOP'},
+    ],
     colorMode: {defaultMode: 'light', respectPrefersColorScheme: false},
     navbar: {
       title: 'CHOP-CHOP',
