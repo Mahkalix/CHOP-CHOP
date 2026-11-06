@@ -1,0 +1,28 @@
+.hero {padding: 4.5rem 0 3rem; border-bottom: 2px solid var(--chop-ink);}
+.heroInner {display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr); gap: 3rem; align-items: center;}
+.eyebrow {font-weight: 700; letter-spacing: .15em; color: var(--ifm-color-primary); font-size: .85rem;}
+.title {font-size: clamp(1.7rem, 4vw, 3rem); margin-bottom: 1.5rem; line-height: 1.5;}
+.brandBanner {display: block; width: 100%; max-width: 628px; height: auto; border: 2px solid var(--chop-ink);}
+.subtitle {font-size: clamp(1.7rem, 4vw, 2.8rem); font-weight: 700; line-height: 1.2;}
+.description {max-width: 650px; font-size: 1.15rem; line-height: 1.7;}
+.actions {display: flex; gap: 1rem; flex-wrap: wrap; margin: 2rem 0;}
+.meta {color: var(--ifm-color-emphasis-700); font-size: .95rem;}
+.main {padding-top: 3rem; padding-bottom: 4rem;}
+.cards {display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem;}
+.card {padding: 1.75rem; border: 2px solid var(--chop-ink); background: var(--chop-sand); display: flex; flex-direction: column; align-items: flex-start;}
+.card h3 {font-size: .95rem; text-transform: uppercase;}
+.card a {margin-top: auto; font-weight: 700;}
+.cardNumber {font-family: var(--chop-pixel-font); color: var(--chop-brick); font-size: .85rem; margin-bottom: 1.5rem;}
+.note {margin-top: 2rem; padding: 1.5rem 2rem; border: 2px solid var(--chop-brick);}
+.note h2, .sectionTitle {font-size: .95rem; text-transform: uppercase;}
+.overview {padding: 2rem; border: 2px solid var(--chop-brick); background: var(--chop-sand);}
+.overviewTitle {font-size: .9rem; text-transform: uppercase; margin-bottom: 1.5rem;}
+.stats {display: grid; gap: .75rem; margin-bottom: 1.5rem;}
+.stat {display: grid; grid-template-columns: 4rem 1fr; gap: 1rem; align-items: center; padding: .85rem 1rem; background: var(--chop-cream);}
+.stat dt {font-family: var(--chop-pixel-font); font-size: 1.2rem; font-weight: 400;}
+.stat dd {margin: 0; line-height: 1.4;}
+.progress {height: 8px; background: var(--chop-ink); margin-top: 1.5rem;}
+.progress::before {content: ''; display: block; height: 100%; width: 75%; background: var(--chop-brick);}
+.overviewCaption {font-size: .85rem; margin: .8rem 0 0;}
+@media (max-width: 996px) {.heroInner {grid-template-columns: 1fr; gap: 2rem;} .overview {max-width: 650px;} .cards {gap: 1rem;} .card {padding: 1.25rem;}}
+@media (max-width: 768px) {.hero {padding: 3rem 0 2rem;} .cards {grid-template-columns: 1fr;} .card {padding: 1.5rem;} .actions a {width: 100%;}}
