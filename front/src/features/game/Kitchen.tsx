@@ -6,7 +6,7 @@ import styles from './Kitchen.module.scss';
 
 export default function Kitchen() {
   const mount = useRef<HTMLDivElement>(null);
-  const [status, setStatus] = useState<InteractionStatus>({ carried: null, target: null, message: 'Approche-toi d’un poste puis appuie sur E.' });
+  const [status, setStatus] = useState<InteractionStatus>({ carried: null, target: null, message: 'Approche-toi d’un poste puis appuie sur E.', preparation: null });
   useEffect(() => {
     let game: Phaser.Game | undefined;
     // Defer creation so StrictMode can clean up its first effect before Phaser boots.
@@ -40,6 +40,12 @@ export default function Kitchen() {
       <strong>EN MAIN : {status.carried ?? 'Rien'}</strong>
       <p>{status.target ? `POSTE : ${status.target}` : 'Approche-toi d’un poste.'}</p>
       <p role="status">{status.message}</p>
+      {status.preparation && <div className={styles.preparation}>
+        <span>{status.preparation.label} · {status.preparation.percent}%</span>
+        <div role="progressbar" aria-label={status.preparation.label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={status.preparation.percent}>
+          <span style={{ width: `${status.preparation.percent}%` }} />
+        </div>
+      </div>}
     </section>
     <p className={styles.hint}>ZQSD ou flèches : BOUGER · ESPACE : BONDIR · E : PRENDRE / POSER · Maintenir C : DÉCOUPER</p>
   </main>, document.body);
