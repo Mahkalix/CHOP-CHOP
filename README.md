@@ -97,3 +97,11 @@ changed-file filtering and access to protected previews.
 Copy `front/.env.example` to `front/.env` and set `VITE_API_URL` to the public API origin (for example `http://localhost:3000`). Restart Vite after changing it. On Vercel, set it for the desired environment and rebuild. This value is public and must contain no credentials. Configure the API’s `CORS_ORIGIN` to allow the frontend origin.
 
 Open `#classement` and select a level: the front requests `GET /leaderboard/:levelId?limit=5`. It preserves server ranks and ordering; the current API ranks games, so a player may appear more than once. The best-score-per-player decision remains tracked in #15. Missing configuration, network/HTTP errors and invalid responses produce an explicit message without fallback scores. No Supabase token is needed for this public route.
+
+## Kitchen interactions (frontend prototype)
+
+In `#jouer`, move with ZQSD or the arrow keys. Approach a highlighted station and press E once to take/use it. Tomato, raw-meat and plate supplies produce one carried item. Chopping accepts a tomato, the grill accepts raw meat, assembly accepts a plate, and the three worktops accept any of these objects. Press E with empty hands to retrieve a placed object. Carrying another object or using an occupied/incompatible station leaves both objects unchanged. The bin removes only the object currently carried, including an empty plate.
+
+The carried object and nearby station are shown in the HUD; a small shape also marks the object in hand or on a surface. These are interaction markers, not finished food assets. Inventory is local to the kitchen and resets when leaving it. No backend request or score is produced. Preparation, cooking, assembly and delivery remain in #17/#18; pressing E at delivery explains that it is unavailable. The kitchen world is 1440×900; its camera follows the chef in the full-window canvas from #35. The interaction HUD stays inside the window independently of the camera.
+
+`pnpm --filter @chopchop/front test` checks transfer identity, occupied/incompatible stations, discarding, reach and inventory conservation across 2,000 interactions. Browser recipe checks should include a tomato round trip through a worktop, plate pickup, bin use, leaving/reopening the kitchen, and confirming that no canvas or keyboard listener is duplicated.
