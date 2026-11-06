@@ -32,7 +32,12 @@ export async function requestProfile(token: string, signal: AbortSignal, pseudo?
     if (signal.aborted) throw error;
     throw new ProfileError(0, 'Impossible de joindre le service joueur. Réessaie.');
   }
-  if (response.status === 404 && pseudo === undefined) return null;
+  if (response.status === 404 && pseudo === undefined) {
+    const body: unknown = await response.json().catch(() => null);
+    // Match the current API contract, not a proxy or static host's generic 404.
+    if (body && typeof body === 'object' && 'error' in body && body.error === 'Profile not created yet') return null;
+    throw new ProfileError(404, 'Le service joueur est mal configuré. Réessaie plus tard.');
+  }
   if (response.status === 401) throw new ProfileError(401, 'Ta session a expiré. Reconnecte-toi pour continuer.');
   if (response.status === 409) throw new ProfileError(409, 'Ce pseudo est déjà pris. Choisis-en un autre.');
   if (!response.ok) throw new ProfileError(response.status, 'Impossible de charger ou enregistrer ton profil. Réessaie.');
