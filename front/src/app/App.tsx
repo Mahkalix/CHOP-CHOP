@@ -8,7 +8,7 @@ function readRoute(): Route {
   const value = window.location.hash.slice(1) as Route;
   return routes.includes(value) ? value : 'accueil';
 }
-const titles: Record<Route, string> = { accueil: 'À vos fourneaux !', jouer: 'Préparer le service', regles: 'Comment jouer', classement: 'Le classement' };
+const titles: Record<Route, string> = { accueil: 'Accueil', jouer: 'Mise en place…', regles: 'Comment jouer', classement: 'Le classement' };
 
 export function App() {
   const [route, setRoute] = useState<Route>(readRoute);
@@ -23,30 +23,64 @@ export function App() {
     heading.current?.focus();
   }, [route]);
   if (route === 'accueil') return <HomePage />;
-  return <div className={styles.page}>
-    <a className={styles.skipLink} href="#contenu" onClick={event => { event.preventDefault(); document.getElementById('contenu')?.focus(); }}>Aller au contenu</a>
-    <header className={styles.header}>
-      <a className={styles.brand} href="#accueil" aria-label="CHOP CHOP — Accueil">CHOP CHOP<span aria-hidden="true">✳</span></a>
-      <nav aria-label="Navigation principale">{routes.map(item => <a key={item} href={`#${item}`} aria-current={route === item ? 'page' : undefined}>{item === 'regles' ? 'Règles' : item.charAt(0).toUpperCase() + item.slice(1)}</a>)}</nav>
-      <span className={styles.status}>SOLO · 3 MINUTES</span>
-    </header>
-    <main id="contenu" tabIndex={-1} className={styles.content}>
-      <p className={styles.eyebrow}>UN SERVICE. UN CHEF. À TOI DE JOUER.</p>
-      <h1 ref={heading} tabIndex={-1}>{titles[route]}</h1>
-      {route === 'regles' ? <section className={styles.panel} aria-label="Règles du jeu">
-        <p>Sers les bonnes assiettes avant la fin des trois minutes.</p>
-        <dl><dt>ZQSD / flèches</dt><dd>Déplacer le chef.</dd><dt>E</dt><dd>Prendre, poser, assembler et servir.</dd><dt>C maintenue</dt><dd>Découper pendant 3 secondes, les mains libres.</dd></dl>
-        <ol><li>Prends une tomate avec E.</li><li>Pose-la sur la planche avec E, puis maintiens C pour la découper.</li><li>Pose une assiette au poste ASSEMBLER et ajoutes-y la tomate.</li><li>Apporte l’assiette au poste SERVIR, vers la salle à droite.</li></ol>
-        <a className={styles.primaryButton} href="#jouer">Préparer le service →</a>
-      </section> : route === 'classement' ? <section className={styles.panel} aria-label="Classement">
-        <p className={styles.eyebrow}>LES MEILLEURS SERVICES</p><h2>Le tableau attend ses chefs.</h2>
-        <p>Le classement sera disponible après le raccordement à l’API des scores.</p><a className={styles.primaryButton} href="#jouer">Aller au service →</a>
-      </section> : <section className={styles.panel} aria-label="Lancement du jeu">
-        <p className={styles.eyebrow}>01 / PREMIER COUP DE FEU</p><h2>La cuisine se prépare.</h2>
-        <p>Le moteur de jeu sera intégré ici. Les déplacements et les recettes arrivent dans les prochaines étapes du projet.</p>
-        <button className={styles.primaryButton} disabled>Démarrer — bientôt disponible</button><p><a href="#regles">Découvrir les commandes →</a></p>
+  const backLabel = route === 'regles' ? 'COMPRIS, RETOUR' : route === 'jouer' ? 'RETOUR À L’ACCUEIL' : 'RETOUR';
+  return (
+    <main className={styles.page}>
+      <header className={styles.header}>
+        {route !== 'jouer' && <img src="/menu/logo.png" alt="CHOP CHOP" />}
+        <h1 ref={heading} tabIndex={-1}>{titles[route].toUpperCase()}</h1>
+      </header>
+      {route === 'regles' && <Rules />}
+      {route === 'classement' && <Ranking />}
+      {route === 'jouer' && <section className={styles.loading}>
+        <h2>La cuisine se prépare.</h2>
+        <p>Les commandes arrivent, à toi de jouer !</p>
       </section>}
+      <a className={styles.back} href="#accueil">{backLabel}</a>
     </main>
-    <footer className={styles.footer}><span>CHOP CHOP / LE COUP DE FEU COMMENCE ICI.</span><span>Jeu solo · Clavier requis</span></footer>
-  </div>;
+  );
+}
+
+const steps = [
+  ['1 / PRENDS UNE TOMATE', 'Approche-toi du bac TOMATES. Appuie sur E pour prendre une tomate.'],
+  ['2 / DÉCOUPE-LA', 'À la planche : E pour poser la tomate. Puis maintiens C pendant 3 s, les mains libres.'],
+  ['3 / PRÉPARE L’ASSIETTE', 'Pose une assiette au poste ASSEMBLER. Reprends la tomate découpée à la planche, puis pose-la sur l’assiette avec E.'],
+  ['4 / SERS LA COMMANDE', 'Prends l’assiette terminée. Va au poste SERVIR et appuie sur E. La bonne recette rapporte des points !'],
+];
+
+function Rules() {
+  return <>
+    <p>TON BUT : servir les bonnes assiettes avant la fin des 3 minutes.</p>
+    <div className={styles.row}>
+      {[['Z Q S D ou ↑ ← ↓ →', 'Se déplacer'], ['E', 'Prendre / poser', 'Appui simple'], ['C', 'Découper', 'Maintenir 3 secondes'], ['Esc', 'Pause']].map(([key, label, hint]) =>
+        <section key={key}><kbd>{key}</kbd><h3>{label}</h3>{hint}</section>
+      )}
+    </div>
+    <h2>TA PREMIÈRE COMMANDE : UNE ASSIETTE DE TOMATE</h2>
+    <div className={styles.row}>{steps.map(([title, body]) =>
+      <section key={title}><h3>{title}</h3><p>{body}</p></section>
+    )}</div>
+    <div className={styles.row}>
+      <section><h3>LES 3 RECETTES</h3>Tomate : assiette + tomate découpée<br/>Viande : assiette + viande cuite<br/>Mixte : assiette + tomate découpée + viande cuite</section>
+      <section><h3>À RETENIR</h3>Un seul objet porté à la fois. Pose-le avant d’en prendre un autre.<br/>Viande : pose-la sur le feu, attends 8 s, puis récupère-la.<br/>Après 6 s de plus, elle brûle : direction la poubelle.</section>
+    </div>
+  </>;
+}
+
+// Example scores from the Figma screen, until the scores API is connected.
+const scores = [['Camille', 680], ['Sam', 540], ['Alex · Toi', 420], ['Lou', 360], ['Noa', 240]] as const;
+
+function Ranking() {
+  return <>
+    <h2>TOP 5 · LES AS DU FOURNEAU</h2>
+    <div className={styles.row}>{([1, 0, 2] as const).map(index =>
+      <section key={index}><h3>{['01 / MEILLEUR SCORE', '02 / PODIUM', '03 / TA POSITION'][index]}</h3><strong>{scores[index][0]}</strong><p>{scores[index][1]} pts</p></section>
+    )}</div>
+    <table><thead><tr><th>RANG</th><th>JOUEUR</th><th>POINTS</th></tr></thead>
+      <tbody>{scores.map(([player, points], i) =>
+        <tr key={player}><td>0{i + 1}</td><td>{player}</td><td>{points}</td></tr>
+      )}</tbody>
+    </table>
+    <p>Ton meilleur score est conservé. À toi de grimper au classement !</p>
+  </>;
 }
