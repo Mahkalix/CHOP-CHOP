@@ -1,4 +1,27 @@
-node_modules
-dist
+# Dependencies and build output (all workspace packages)
+node_modules/
+dist/
+*.tsbuildinfo
+/front/vite.config.js
+/front/vite.config.d.ts
+
+# Local environment; keep shareable examples
 .env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+
+# Tool caches and test reports
+.pnpm-store/
+.vite/
+.vitest/
+coverage/
+
+# Logs and local system/editor files
 *.log
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
