@@ -1,12 +1,13 @@
 import Phaser from 'phaser';
 
 import { stations, closestStation } from './stations';
-import { createInventory, interact, chopDuration, describeItem, type Item, type Inventory } from './interactions';
+import { createInventory, interact, describeItem, type Item, type Inventory } from './interactions';
 
+import { advancePreparation, getPreparationProgress, type PreparationProgress } from './preparation';
 
-const textureOf = (item: Item) => 'item-' + (item.kind === 'tomato' ? (item.cutMs === chopDuration ? 'chopped' : 'whole') : item.kind);
+const textureOf = (item: Item) => 'item-' + (item.kind === 'tomato' ? (item.state === 'chopped' ? 'chopped' : 'whole') : item.kind === 'meat' && item.state !== 'raw' ? item.state : item.kind);
 
-export type InteractionStatus = { carried: string | null; target: string | null; message: string };
+export type InteractionStatus = { carried: string | null; target: string | null; message: string; preparation: PreparationProgress | null };
 
 const chefs = ['Miso', 'Pipa', 'Basile', 'Alba', 'Nori', 'Gaspard'];
 
@@ -15,6 +16,11 @@ export class KitchenScene extends Phaser.Scene {
   private interactionKey!: Phaser.Input.Keyboard.Key;
   private targetId: string | null = null;
   private placedItems = new Map<string, Phaser.GameObjects.Image>();
+  private feedback = '';
+  private lastStatus = '';
+  private lastProgressAt = 0;
+  private progressBars!: Phaser.GameObjects.Graphics;
+  private burningFlames!: Phaser.GameObjects.Graphics;
   private choppingCloud!: Phaser.GameObjects.Graphics;
   private knife!: Phaser.GameObjects.Image;
   private cutKey!: Phaser.Input.Keyboard.Key;
@@ -34,7 +40,7 @@ export class KitchenScene extends Phaser.Scene {
     for (const key of new Set(stations.map(station => station.texture))) {
       this.load.image(key, `/kitchen/${key}.png`);
     }
-    for (const name of ['whole', 'chopped', 'meat', 'plate']) {
+    for (const name of ['whole', 'chopped', 'meat', 'cooked', 'burnt', 'plate']) {
       this.load.svg('item-' + name, '/kitchen/items/' + name + '.svg');
     }
     this.load.svg('pan', '/kitchen/items/pan.svg');
@@ -45,6 +51,8 @@ export class KitchenScene extends Phaser.Scene {
 
   create() {
     this.inventory = createInventory();
+    this.lastStatus = '';
+    this.lastProgressAt = 0;
     this.dashUntil = 0;
     this.facing.set(0, 1);
     this.targetId = null;
@@ -71,7 +79,7 @@ export class KitchenScene extends Phaser.Scene {
     this.player.setCollideWorldBounds(true);
     this.physics.add.collider(this.player, obstacles);
     this.player.setVisible(false);
-    this.portrait = this.add.image(this.player.x, this.player.y, 'chef').setDisplaySize(128, 160);
+    this.portrait = this.add.image(this.player.x, this.player.y, 'chef').setDisplaySize(128, 160).setDepth(20);
     const camera = this.cameras.main;
     camera.setBounds(0, 0, 1440, 900).startFollow(this.player);
     const fitCamera = () => camera.setZoom(Math.max(this.scale.width / 1440, this.scale.height / 900));
@@ -86,10 +94,12 @@ export class KitchenScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.interactionKey.off('down', this.useClosestStation, this));
     this.placedItems.clear();
     this.cutKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.C);
-    this.knife = this.add.image(0, 0, 'knife').setOrigin(.13, .45).setDepth(21);
+    this.knife = this.add.image(0, 0, 'knife').setOrigin(.13, .45);
     this.restKnife();
     this.choppingCloud = this.add.graphics().setDepth(15);
-    this.carriedItem = this.add.image(0, 0, 'item-whole').setScale(.72).setVisible(false).setDepth(20);
+    this.progressBars = this.add.graphics().setDepth(16);
+    this.burningFlames = this.add.graphics().setDepth(14);
+    this.carriedItem = this.add.image(0, 0, 'item-whole').setScale(.72).setVisible(false).setDepth(22);
     this.publishStatus(null, 'Approche-toi d’un poste puis appuie sur E.');
   }
 
@@ -119,23 +129,61 @@ export class KitchenScene extends Phaser.Scene {
       this.stationSprites.get(this.targetId ?? '')?.setTint(0xffe293);
       this.publishStatus(target, target ? 'E : prendre, poser ou utiliser ce poste.' : 'Approche-toi d’un poste pour interagir.');
     }
+    this.updatePreparation(target, time, delta);
+  }
+
+  private updatePreparation(target: (typeof stations)[number] | null, time: number, delta: number) {
+    const cuttingStation = this.cutKey.isDown ? target?.id ?? null : null;
+    const result = advancePreparation(this.inventory, delta, cuttingStation);
+    this.inventory = result.inventory;
     this.choppingCloud.clear();
     this.restKnife();
     const tomato = target && this.inventory.surfaces[target.id];
-    if (target?.id === 'chopping' && tomato?.kind === 'tomato' && (tomato.cutMs ?? 0) < chopDuration) {
-      let elapsed = tomato.cutMs ?? 0;
-      const x = target.x + 72, y = target.y + 68;
-      if (this.cutKey.isDown && !this.inventory.carried) {
-        elapsed = Math.min(chopDuration, elapsed + delta);
-        this.inventory = { ...this.inventory, surfaces: { ...this.inventory.surfaces, [target.id]: { ...tomato, cutMs: elapsed } } };
-        if (elapsed === chopDuration) {
-          this.drawItems();
-          this.publishStatus(target, 'Tomate découpée.');
-        } else this.animateChop(x, y, elapsed / 270);
-      }
-      if (elapsed > 0 && elapsed < chopDuration) {
-        this.choppingCloud.fillStyle(0x39312b).fillRoundedRect(x - 22, y + 22, 44, 6, 2)
-          .fillStyle(0xffcf68).fillRect(x - 20, y + 24, 40 * elapsed / chopDuration, 2);
+    if (target?.id === 'chopping' && tomato?.kind === 'tomato' && tomato.state === 'raw'
+      && this.cutKey.isDown && !this.inventory.carried) {
+      this.animateChop(target.x + 72, target.y + 68, tomato.cutMs / 270);
+    }
+    this.drawProgress();
+    this.drawBurningFlames(time);
+    if (result.messages.length) {
+      this.drawItems();
+      this.publishStatus(target, result.messages.join(' '));
+    } else if (time - this.lastProgressAt >= 200) {
+      this.lastProgressAt = time;
+      this.publishStatus(target);
+    }
+  }
+
+  private drawProgress() {
+    this.progressBars.clear();
+    for (const station of stations) {
+      const progress = getPreparationProgress(this.inventory.surfaces[station.id], station);
+      if (!progress) continue;
+      const x = station.x + 36, y = station.y + 100;
+      this.progressBars.fillStyle(0x39312b).fillRoundedRect(x, y, 72, 10, 3)
+        .fillStyle(0xffcf68).fillRect(x + 2, y + 2, 68 * progress.percent / 100, 6);
+    }
+  }
+
+  private drawBurningFlames(time: number) {
+    this.burningFlames.clear();
+    for (const station of stations) {
+      const item = this.inventory.surfaces[station.id];
+      if (station.kind !== 'surface' || station.preparation !== 'cook'
+        || item?.kind !== 'meat' || item.state !== 'cooked') continue;
+      const danger = 1 - getPreparationProgress(item, station)!.percent / 100;
+      for (let index = 0; index < 3; index++) {
+        const beat = time / 170 + index * 1.8;
+        const x = station.x + 54 + index * 18;
+        const y = station.y + 80;
+        const sway = Math.sin(beat) * 3;
+        const height = 13 + danger * 8 + Math.sin(beat + 1) * 3;
+        const width = 5 + danger * 2;
+        this.burningFlames.fillStyle(0xff7025, .9).beginPath()
+          .moveTo(x - width, y).lineTo(x - width, y - 6)
+          .lineTo(x - 3, y - height * .6).lineTo(x + sway, y - height)
+          .lineTo(x + width, y - 6).lineTo(x + width, y).closePath().fillPath()
+          .fillStyle(0xffe28a).fillTriangle(x - width * .55, y, x + sway * .5, y - height * .65, x + width * .55, y);
       }
     }
   }
@@ -154,14 +202,14 @@ export class KitchenScene extends Phaser.Scene {
       const gripX = x + side * 37;
       const gripY = y + 3 - swing * 8;
       this.portrait.setFlipX(side > 0).setPosition(gripX + side * 26, gripY - 26);
-      this.knife.setPosition(gripX, gripY).setRotation(
+      this.knife.setDepth(21).setPosition(gripX, gripY).setRotation(
         (side > 0 ? Math.PI : 0) + side * swing * .55
       );
   }
 
   private restKnife() {
     const counter = this.stationSprites.get('chopping')!;
-    this.knife.setPosition(counter.x - 44, counter.y - 27).setAngle(-12);
+    this.knife.setDepth(10).setPosition(counter.x - 44, counter.y - 27).setAngle(-12);
   }
 
   private useClosestStation() {
@@ -174,12 +222,19 @@ export class KitchenScene extends Phaser.Scene {
     this.publishStatus(target, result.message);
   }
 
-  private publishStatus(target: (typeof stations)[number] | null, message: string) {
-    this.game.events.emit('kitchen-interaction', {
+  private publishStatus(target: (typeof stations)[number] | null, message = this.feedback) {
+    this.feedback = message;
+    const progress = target ? getPreparationProgress(this.inventory.surfaces[target.id], target) : null;
+    const status = {
       carried: this.inventory.carried ? describeItem(this.inventory.carried) : null,
       target: target ? target.label || 'PLAN DE TRAVAIL' : null,
       message,
-    } satisfies InteractionStatus);
+      preparation: progress ? { ...progress, percent: Math.round(progress.percent) } : null,
+    } satisfies InteractionStatus;
+    const serialized = JSON.stringify(status);
+    if (serialized === this.lastStatus) return;
+    this.lastStatus = serialized;
+    this.game.events.emit('kitchen-interaction', status);
   }
 
   private drawItems() {
