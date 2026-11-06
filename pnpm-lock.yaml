@@ -80,9 +80,6 @@ importers:
       vite:
         specifier: ^7.1.7
         version: 7.3.6(@types/node@26.6.4)(lightningcss@1.33.0)(sass@1.105.1)(tsx@4.23.15)
-      zod:
-        specifier: ^4.6.5
-        version: 4.6.5
     devDependencies:
       '@types/react':
         specifier: ^19.1.14

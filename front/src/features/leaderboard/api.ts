@@ -1,16 +1,4 @@
-import { z } from 'zod';
-import type { LeaderboardResponse } from '@chopchop/shared';
-
-const responseSchema = z.object({
-  levelId: z.number().int(),
-  entries: z.array(z.object({
-    rank: z.number().int().positive(),
-    pseudo: z.string(),
-    score: z.number().int().nonnegative(),
-    durationMs: z.number().nonnegative(),
-    finishedAt: z.string(),
-  })),
-});
+import { LeaderboardResponseSchema, type LeaderboardResponse } from '@chopchop/shared';
 
 export async function fetchLeaderboard(
   baseUrl: string | undefined,
@@ -30,12 +18,12 @@ export async function fetchLeaderboard(
   }
   let response: Response;
   try {
-    response = await fetch(url, { signal });
+    response = await fetch(url, { signal: AbortSignal.any([signal, AbortSignal.timeout(8_000)]) });
   } catch {
     throw new Error('Impossible de joindre le classement. Réessaie dans un instant.');
   }
   if (!response.ok) throw new Error('Le classement est temporairement indisponible.');
-  const parsed = responseSchema.safeParse(await response.json().catch(() => null));
+  const parsed = LeaderboardResponseSchema.safeParse(await response.json().catch(() => null));
   if (!parsed.success || parsed.data.levelId !== levelId) {
     throw new Error('La réponse du classement est invalide. Réessaie dans un instant.');
   }

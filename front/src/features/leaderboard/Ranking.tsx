@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { LeaderboardResponse } from '@chopchop/shared';
 import { fetchLeaderboard } from './api';
 import styles from './Ranking.module.scss';
+import homeStyles from '../home/HomePage.module.scss';
 
 type Result =
   | { status: 'loading' }
@@ -12,8 +13,8 @@ export function Ranking() {
   if (!import.meta.env.VITE_API_URL?.trim()) {
     return <section className={styles.upcoming} aria-labelledby="ranking-soon">
       <img src="/menu/star.svg" alt="" width="48" height="48" />
-      <h2 id="ranking-soon">Le classement arrive bientôt</h2>
-      <p>Retrouve ici les meilleurs scores de chaque niveau dès l’ouverture du classement.</p>
+      <h2 id="ranking-soon">Classement indisponible</h2>
+      <p role="alert">Le service de classement n’est pas configuré. Réessaie plus tard.</p>
     </section>;
   }
   return <LiveRanking />;
@@ -49,7 +50,13 @@ function LiveRanking() {
     <select id="ranking-level" value={level} onChange={event => changeLevel(Number(event.target.value))}>
       {[1, 2, 3].map(id => <option key={id} value={id}>Niveau {id}</option>)}
     </select>
-    <h2>TOP 5 · LES AS DU FOURNEAU</h2>
+    {result.status === 'success' && <div className={homeStyles.row} aria-label="Podium">
+      {result.data.entries.slice(0, 3).map(entry => <section key={entry.rank}>
+        <h3>{String(entry.rank).padStart(2, '0')} / {entry.rank === 1 ? 'MEILLEUR SCORE' : 'PODIUM'}</h3>
+        <strong>{entry.pseudo}</strong><p>{entry.score} pts</p>
+      </section>)}
+    </div>}
+    <h2 className={styles.title}>TOP 5 · LES AS DU FOURNEAU</h2>
     <div aria-live="polite" aria-busy={result.status === 'loading'}>
       {result.status === 'loading' && <p>Chargement du classement…</p>}
       {result.status === 'error' && <>
@@ -61,7 +68,7 @@ function LiveRanking() {
         : <div className={styles.tableWrapper}><table>
           <caption>Les cinq meilleurs joueurs du niveau {level}</caption>
           <thead><tr><th scope="col">RANG</th><th scope="col">JOUEUR</th><th scope="col">POINTS</th></tr></thead>
-          <tbody>{result.data.entries.map((entry, index) => <tr key={index}>
+          <tbody>{result.data.entries.map(entry => <tr key={entry.rank}>
             <td>{entry.rank}</td><th scope="row">{entry.pseudo}</th><td>{entry.score}</td>
           </tr>)}</tbody>
         </table></div>)}
