@@ -34,9 +34,40 @@ export const FinishGameSchema = z.object({
 });
 export type FinishGameInput = z.infer<typeof FinishGameSchema>;
 
-export const LeaderboardQuerySchema = z.object({
+/** `?limit=N`, shared by every list route. */
+export const LimitQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(LEADERBOARD_MAX_LIMIT).default(LEADERBOARD_DEFAULT_LIMIT),
 });
+
+/** GET /pseudos/:pseudo/available */
+export interface PseudoAvailabilityResponse {
+  pseudo: string;
+  available: boolean;
+}
+
+/** One finished game of the logged-in player. */
+export interface PlayerGame {
+  gameId: string;
+  levelId: number;
+  score: number;
+  durationMs: number;
+  finishedAt: string;
+}
+
+/** GET /me/games: newest first. */
+export interface PlayerGamesResponse {
+  games: PlayerGame[];
+}
+
+export interface BestScore {
+  levelId: number;
+  score: number;
+}
+
+/** GET /me/best: only the levels the player has finished at least once. */
+export interface BestScoresResponse {
+  scores: BestScore[];
+}
 
 export interface Profile {
   id: string;

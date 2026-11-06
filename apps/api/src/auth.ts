@@ -25,8 +25,9 @@ export function createSupabaseAuthenticator(supabaseUrl: string): Authenticate {
         audience: "authenticated",
         algorithms: ["ES256", "RS256"],
       });
-      // Anonymous sign-ins carry a valid token too: only real accounts may play.
-      if (payload.role !== "authenticated" || payload.is_anonymous === true) return null;
+      // Players sign in with a pseudo only (Supabase anonymous sign-in): their token has the
+      // `authenticated` role and `is_anonymous: true`, and identifies them like any account.
+      if (payload.role !== "authenticated") return null;
       return typeof payload.sub === "string" ? payload.sub : null;
     } catch (err) {
       // An invalid token is a 401; an unreachable JWKS is an outage and must not look like one.

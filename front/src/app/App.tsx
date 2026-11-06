@@ -22,7 +22,7 @@ export function App() {
     return () => window.removeEventListener('hashchange', update);
   }, []);
   useEffect(() => {
-    document.title = `${titles[route]} · CHOP CHOP`;
+    document.title = route === 'accueil' ? 'CHOP-CHOP — Jeu de cuisine solo' : `${titles[route]} · CHOP-CHOP`;
     heading.current?.focus();
   }, [route]);
   if (route === 'accueil') return <HomePage />;
