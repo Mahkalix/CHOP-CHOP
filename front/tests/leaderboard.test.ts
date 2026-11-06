@@ -1,11 +1,11 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { fetchLeaderboard } from '../src/features/leaderboard/api';
 
-afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 const signal = () => new AbortController().signal;
 const entry = { rank: 2, pseudo: 'Camille', score: 450, durationMs: 180000, finishedAt: '2026-11-06T10:00:00Z' };
 
-it('requests the selected level and preserves server ranks and order', async () => {
+it('requests the selected level and preserves server ranks and ordering', async () => {
   const data = { levelId: 3, entries: [entry, { ...entry, pseudo: 'Alex', rank: 3, score: 400 }] };
   const fetchMock = vi.fn().mockResolvedValue(Response.json(data));
   vi.stubGlobal('fetch', fetchMock);
@@ -52,20 +52,19 @@ it('passes cancellation to the request', async () => {
   await expect(request).rejects.toThrow();
 });
 
-it('turns a stalled request into a retryable error after the timeout', async () => {
-  const timeout = new AbortController();
-  const timeoutMock = vi.spyOn(AbortSignal, 'timeout').mockReturnValue(timeout.signal);
+it('times out a stalled API and allows callers to retry', async () => {
+  vi.useFakeTimers();
   vi.stubGlobal('fetch', vi.fn((_url, options) => new Promise((_resolve, reject) => {
-    options.signal.addEventListener('abort', () => reject(options.signal.reason));
+    options.signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
   })));
   const request = fetchLeaderboard('https://api.example.com', 1, signal());
-  const assertion = expect(request).rejects.toThrow('Impossible de joindre');
-  expect(timeoutMock).toHaveBeenCalledWith(8_000);
-  timeout.abort(new DOMException('Timed out', 'TimeoutError'));
-  await assertion;
+  const failed = expect(request).rejects.toThrow('trop de temps');
+  await vi.advanceTimersByTimeAsync(8_000);
+  await failed;
+  expect(vi.getTimerCount()).toBe(0);
 });
 
-it('rejects levels outside the shared contract even when they match the request', async () => {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ levelId: 99, entries: [] })));
-  await expect(fetchLeaderboard('https://api.example.com', 99, signal())).rejects.toThrow('invalide');
+it('validates level ids against the shared API contract', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ levelId: 999, entries: [] })));
+  await expect(fetchLeaderboard('https://api.example.com', 999, signal())).rejects.toThrow('invalide');
 });

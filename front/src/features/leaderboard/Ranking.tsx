@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import type { LeaderboardResponse } from '@chopchop/shared';
+import type { LeaderboardEntry, LeaderboardResponse } from '@chopchop/shared';
 import { fetchLeaderboard } from './api';
 import styles from './Ranking.module.scss';
-import homeStyles from '../home/HomePage.module.scss';
 
 type Result =
   | { status: 'loading' }
@@ -50,12 +49,6 @@ function LiveRanking() {
     <select id="ranking-level" value={level} onChange={event => changeLevel(Number(event.target.value))}>
       {[1, 2, 3].map(id => <option key={id} value={id}>Niveau {id}</option>)}
     </select>
-    {result.status === 'success' && <div className={homeStyles.row} aria-label="Podium">
-      {result.data.entries.slice(0, 3).map(entry => <section key={entry.rank}>
-        <h3>{String(entry.rank).padStart(2, '0')} / {entry.rank === 1 ? 'MEILLEUR SCORE' : 'PODIUM'}</h3>
-        <strong>{entry.pseudo}</strong><p>{entry.score} pts</p>
-      </section>)}
-    </div>}
     <h2 className={styles.title}>TOP 5 · LES AS DU FOURNEAU</h2>
     <div aria-live="polite" aria-busy={result.status === 'loading'}>
       {result.status === 'loading' && <p>Chargement du classement…</p>}
@@ -65,14 +58,25 @@ function LiveRanking() {
       </>}
       {result.status === 'success' && (result.data.entries.length === 0
         ? <p>Aucun score classé pour ce niveau pour le moment.</p>
-        : <div className={styles.tableWrapper}><table>
+        : <><Podium entries={result.data.entries} /><div className={styles.tableWrapper}><table>
           <caption>Les cinq meilleurs joueurs du niveau {level}</caption>
           <thead><tr><th scope="col">RANG</th><th scope="col">JOUEUR</th><th scope="col">POINTS</th></tr></thead>
           <tbody>{result.data.entries.map(entry => <tr key={entry.rank}>
             <td>{entry.rank}</td><th scope="row">{entry.pseudo}</th><td>{entry.score}</td>
           </tr>)}</tbody>
-        </table></div>)}
+        </table></div></>)}
     </div>
     <p>Un meilleur score par joueur et par niveau. Départage par durée, puis par date.</p>
   </section>;
+}
+
+function Podium({ entries }: { entries: LeaderboardEntry[] }) {
+  const winners = entries.slice(0, 3);
+  const ordered = winners.length === 3 ? [winners[1]!, winners[0]!, winners[2]!] : winners;
+  return <div className={styles.podium} aria-label="Podium du niveau">
+    {ordered.map(entry => <section key={entry.rank} className={entry.rank === 1 ? styles.winner : undefined}>
+      <h3>{String(entry.rank).padStart(2, '0')} / {entry.rank === 1 ? 'MEILLEUR SCORE' : 'PODIUM'}</h3>
+      <strong>{entry.pseudo}</strong><p>{entry.score} pts</p>
+    </section>)}
+  </div>;
 }

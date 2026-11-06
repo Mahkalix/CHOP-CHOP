@@ -16,16 +16,29 @@ export async function fetchLeaderboard(
   } catch {
     throw new Error('L’adresse du service de classement est invalide.');
   }
-  let response: Response;
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  if (signal.aborted) abort();
+  signal.addEventListener('abort', abort, { once: true });
+  const timeout = setTimeout(abort, 8_000);
   try {
-    response = await fetch(url, { signal: AbortSignal.any([signal, AbortSignal.timeout(8_000)]) });
-  } catch {
-    throw new Error('Impossible de joindre le classement. Réessaie dans un instant.');
+    let response: Response;
+    try { response = await fetch(url, { signal: controller.signal }); }
+    catch (error) {
+      if (controller.signal.aborted) throw error;
+      throw new Error('Impossible de joindre le classement. Réessaie dans un instant.');
+    }
+    if (!response.ok) throw new Error('Le classement est temporairement indisponible.');
+    const parsed = LeaderboardResponseSchema.safeParse(await response.json().catch(() => null));
+    if (!parsed.success || parsed.data.levelId !== levelId) {
+      throw new Error('La réponse du classement est invalide. Réessaie dans un instant.');
+    }
+    return parsed.data;
+  } catch (error) {
+    if (controller.signal.aborted && !signal.aborted) throw new Error('Le classement met trop de temps à répondre. Réessaie.');
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+    signal.removeEventListener('abort', abort);
   }
-  if (!response.ok) throw new Error('Le classement est temporairement indisponible.');
-  const parsed = LeaderboardResponseSchema.safeParse(await response.json().catch(() => null));
-  if (!parsed.success || parsed.data.levelId !== levelId) {
-    throw new Error('La réponse du classement est invalide. Réessaie dans un instant.');
-  }
-  return parsed.data;
 }
