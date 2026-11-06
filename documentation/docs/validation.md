@@ -22,7 +22,7 @@ Durées confirmées : 3 secondes pour découper un ingrédient et 8 secondes pou
 
 Valider la génération des commandes, le barème des combos et les plafonds provisoires de score de chaque niveau.
 
-Brancher la cuisine Phaser, déjà intégrée au front React/Vite, aux recettes, aux commandes, au score et à l’API, et aligner les trois niveaux décidés avec Figma, les données et les contrats partagés ; le code contient encore des limites et données pour cinq niveaux.
+Brancher la cuisine Phaser, déjà intégrée au front React/Vite, aux recettes, aux commandes, au score et à l’API, et aligner les trois niveaux décidés avec Figma, les données et les contrats partagés ; le code contient encore des limites et données pour trois niveaux.
 
 Vérifier l’intégration front/API : création du pseudo, démarrage, fin de partie, abandon et classement. Vérifier les refus `422` pour les durées et scores hors limites.
 

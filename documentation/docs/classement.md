@@ -8,7 +8,7 @@ L’équipe a retenu trois niveaux avec un classement par niveau. L’API est pr
 
 ## Un classement pour chaque niveau
 
-Les joueurs comparent leurs résultats pour un même niveau parmi les trois prévus. Le choix entre toutes les parties terminées et le meilleur score par joueur reste à trancher : l’API actuelle classe toutes les parties terminées, et un même joueur peut apparaître plusieurs fois.
+Les joueurs comparent leurs résultats pour un même niveau parmi les cinq prévus. Le classement garde le meilleur score validé de chaque joueur pour chaque niveau : un joueur n’apparaît qu’une fois, et le rang renvoyé en fin de partie est celui de ce record.
 
 Associer les scores à l’identifiant du compte anonyme Supabase du joueur, distinct du pseudo affiché. Ce compte est lié à la session du navigateur : si le joueur efface ses données, il devient un nouveau joueur et ses anciens scores ne lui sont plus rattachés.
 
