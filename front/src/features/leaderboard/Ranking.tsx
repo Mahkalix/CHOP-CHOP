@@ -9,6 +9,17 @@ type Result =
   | { status: 'error'; message: string };
 
 export function Ranking() {
+  if (!import.meta.env.VITE_API_URL?.trim()) {
+    return <section className={styles.upcoming} aria-labelledby="ranking-soon">
+      <img src="/menu/star.svg" alt="" width="48" height="48" />
+      <h2 id="ranking-soon">Le classement arrive bientôt</h2>
+      <p>Retrouve ici les meilleurs scores de chaque niveau dès l’ouverture du classement.</p>
+    </section>;
+  }
+  return <LiveRanking />;
+}
+
+function LiveRanking() {
   const [level, setLevel] = useState(1);
   const [attempt, setAttempt] = useState(0);
   const [result, setResult] = useState<Result>({ status: 'loading' });

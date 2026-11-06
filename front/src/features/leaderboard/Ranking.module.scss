@@ -6,3 +6,18 @@
   th[scope='row'] { font-weight: normal; overflow-wrap: anywhere; }
 }
 .tableWrapper { overflow-x: auto; }
+
+.upcoming {
+  box-sizing: border-box;
+  width: min(100%, 820px);
+  margin: 48px auto 32px;
+  padding: 40px 28px;
+  border: 2px solid #342019;
+  background: #f7f1e6;
+  box-shadow: 5px 5px #cdbca4;
+  text-align: center;
+
+  img { display: block; margin: 0 auto 16px; }
+  h2 { margin: 0; font: 700 36px/1.15 'Pixelify Sans', monospace; color: #922f1f; }
+  p { max-width: 44ch; margin: 12px auto 0; font-size: 20px; line-height: 1.45; }
+}
