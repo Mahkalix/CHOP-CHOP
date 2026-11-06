@@ -58,4 +58,4 @@ Ne jamais commiter le fichier `.env` ni les secrets. Vérifications du monorepo 
 | [`packages/shared/`](packages/shared/) | Types et schémas Zod communs au front et à l'API. |
 | [`documentation/`](documentation/) | Site Docusaurus, installé et construit séparément avec npm. |
 
-Les [conventions de travail](documentation/docs/conventions.md), l'[architecture et les routes API](documentation/docs/architecture.md) et la [configuration Vercel du front](docs/vercel.md) donnent le détail. Le travail en cours se suit dans les [issues](https://github.com/Mahkalix/CHOP-CHOP/issues) et le [Project](https://github.com/users/Mahkalix/projects/3).
+Les [conventions de travail](documentation/docs/conventions.md), l'[architecture et les routes API](documentation/docs/architecture.md) la [configuration Vercel du front](docs/vercel.md) et l'[hébergement de l'API sur Render](docs/render.md) donnent le détail. Le travail en cours se suit dans les [issues](https://github.com/Mahkalix/CHOP-CHOP/issues) et le [Project](https://github.com/users/Mahkalix/projects/3).
