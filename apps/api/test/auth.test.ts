@@ -39,12 +39,15 @@ describe("Supabase token verification", () => {
     expect(await authenticate(await sign({ role: "authenticated" }))).toBe("user-1");
   });
 
+  it("accepts an anonymous account: players sign in with a pseudo only", async () => {
+    expect(await authenticate(await sign({ role: "authenticated", is_anonymous: true }))).toBe("user-1");
+  });
+
   it.each([
     ["signed with another key", () => sign({ role: "authenticated" }, { key: otherKey })],
     ["wrong issuer", () => sign({ role: "authenticated" }, { iss: "https://evil.example/auth/v1" })],
     ["wrong audience", () => sign({ role: "authenticated" }, { aud: "anon" })],
     ["expired", () => sign({ role: "authenticated" }, { exp: "-1m" })],
-    ["anonymous account", () => sign({ role: "authenticated", is_anonymous: true })],
     ["not the authenticated role", () => sign({ role: "service_role" })],
     ["garbage", async () => "not.a.jwt"],
   ])("rejects a token that is %s", async (_label, make) => {

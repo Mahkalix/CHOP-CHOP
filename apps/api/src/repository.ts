@@ -1,5 +1,5 @@
-import { and, asc, desc, eq, sql } from "drizzle-orm";
-import type { LeaderboardEntry, Profile } from "@chopchop/shared";
+import { and, asc, desc, eq, max, sql } from "drizzle-orm";
+import type { BestScore, LeaderboardEntry, PlayerGame, Profile } from "@chopchop/shared";
 import type { createDb } from "./db/client.js";
 import { joueur, partie, versionRegles } from "./db/schema.js";
 
@@ -17,8 +17,14 @@ export interface Game {
 
 export interface Repository {
   getProfile(userId: string): Promise<Profile | null>;
-  /** Creates or renames the profile of a user. */
-  saveProfile(userId: string, pseudo: string): Promise<"saved" | "pseudo_taken">;
+  /** Creates the profile of a user. The pseudo is final: a user who already has one gets "already_set". */
+  saveProfile(userId: string, pseudo: string): Promise<"saved" | "pseudo_taken" | "already_set">;
+  /** True if nobody uses this pseudo yet (case-insensitive). */
+  isPseudoAvailable(pseudo: string): Promise<boolean>;
+  /** Finished games of a player, newest first. */
+  playerGames(userId: string, limit: number): Promise<PlayerGame[]>;
+  /** Best score of a player on each level they have finished, ordered by level. */
+  bestScores(userId: string): Promise<BestScore[]>;
   /**
    * Starts a game with the latest rules version. The user must have a profile.
    * A game still in progress for this user is abandoned: a player has at most one open game.
@@ -75,15 +81,58 @@ export function createRepository(db: Db): Repository {
 
     async saveProfile(userId, pseudo) {
       try {
-        await db
+        const inserted = await db
           .insert(joueur)
           .values({ idJoueur: userId, pseudo })
-          .onConflictDoUpdate({ target: joueur.idJoueur, set: { pseudo } });
-        return "saved";
+          .onConflictDoNothing({ target: joueur.idJoueur })
+          .returning({ id: joueur.idJoueur });
+        return inserted.length > 0 ? "saved" : "already_set";
       } catch (err) {
         if (isUniqueViolation(err)) return "pseudo_taken";
         throw err;
       }
+    },
+
+    async isPseudoAvailable(pseudo) {
+      const rows = await db
+        .select({ id: joueur.idJoueur })
+        .from(joueur)
+        .where(sql`lower(${joueur.pseudo}) = lower(${pseudo})`)
+        .limit(1);
+      return rows.length === 0;
+    },
+
+    async playerGames(userId, limit) {
+      const duration = durationMs(partie);
+      const rows = await db
+        .select({
+          gameId: partie.idPartie,
+          levelId: partie.idNiveau,
+          score: partie.scoreFinal,
+          duration,
+          finishedAt: partie.dateFin,
+        })
+        .from(partie)
+        .where(and(eq(partie.idJoueur, userId), eq(partie.statut, "terminee")))
+        .orderBy(desc(partie.dateFin), desc(partie.idPartie))
+        .limit(limit);
+      return rows.map((r) => ({
+        gameId: r.gameId,
+        levelId: r.levelId,
+        score: r.score ?? 0,
+        durationMs: Number(r.duration),
+        finishedAt: (r.finishedAt ?? new Date(0)).toISOString(),
+      }));
+    },
+
+    async bestScores(userId) {
+      const rows = await db
+        .select({ levelId: partie.idNiveau, score: max(partie.scoreFinal) })
+        .from(partie)
+        .where(and(eq(partie.idJoueur, userId), eq(partie.statut, "terminee")))
+        .groupBy(partie.idNiveau)
+        .orderBy(asc(partie.idNiveau));
+      return rows.map((r) => ({ levelId: r.levelId, score: r.score ?? 0 }));
     },
 
     async startGame(userId, levelId, startedAt) {

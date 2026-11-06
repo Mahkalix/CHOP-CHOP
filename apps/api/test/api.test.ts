@@ -21,6 +21,7 @@ function memoryRepository(): Repository & { pseudos: Map<string, string> } {
           duration(a) - duration(b) ||
           a.finishedAt!.getTime() - b.finishedAt!.getTime(),
       );
+  const isTaken = (pseudo: string) => [...pseudos.values()].some((p) => p.toLowerCase() === pseudo.toLowerCase());
   let seq = 0;
 
   return {
@@ -30,11 +31,35 @@ function memoryRepository(): Repository & { pseudos: Map<string, string> } {
       return pseudo ? { id: userId, pseudo } : null;
     },
     async saveProfile(userId, pseudo) {
-      for (const [id, p] of pseudos) {
-        if (id !== userId && p.toLowerCase() === pseudo.toLowerCase()) return "pseudo_taken";
-      }
+      if (pseudos.has(userId)) return "already_set";
+      if (isTaken(pseudo)) return "pseudo_taken";
       pseudos.set(userId, pseudo);
       return "saved";
+    },
+    async isPseudoAvailable(pseudo) {
+      return !isTaken(pseudo);
+    },
+    async playerGames(userId, limit) {
+      return [...games.values()]
+        .filter((g) => g.userId === userId && g.status === "terminee")
+        .sort((a, b) => b.finishedAt!.getTime() - a.finishedAt!.getTime())
+        .slice(0, limit)
+        .map((g) => ({
+          gameId: g.id,
+          levelId: g.levelId,
+          score: g.score!,
+          durationMs: duration(g),
+          finishedAt: g.finishedAt!.toISOString(),
+        }));
+    },
+    async bestScores(userId) {
+      const best = new Map<number, number>();
+      for (const g of games.values()) {
+        if (g.userId === userId && g.status === "terminee") {
+          best.set(g.levelId, Math.max(best.get(g.levelId) ?? 0, g.score!));
+        }
+      }
+      return [...best].sort(([a], [b]) => a - b).map(([levelId, score]) => ({ levelId, score }));
     },
     async startGame(userId, levelId, startedAt) {
       for (const g of games.values()) {
@@ -117,6 +142,9 @@ describe("API", () => {
       ["POST", "/games"],
       ["POST", "/games/00000000-0000-4000-8000-000000000001/finish"],
       ["POST", "/games/00000000-0000-4000-8000-000000000001/abandon"],
+      ["GET", "/me/games"],
+      ["GET", "/me/best"],
+      ["GET", "/pseudos/Alice/available"],
     ] as const)("%s %s requires a valid token", async (method, url) => {
       expect((await call(method, url)).statusCode).toBe(401);
       const bad = await app.inject({ method, url, headers: { authorization: "Bearer nope" } });
@@ -143,21 +171,101 @@ describe("API", () => {
       expect((await call("GET", "/me", "newbie")).statusCode).toBe(404);
     });
 
-    it("trims the pseudo", async () => {
-      expect((await setPseudo("alice", "  Ana  ")).json().pseudo).toBe("Ana");
+    it("creates the profile of a new player and trims the pseudo", async () => {
+      tokens["t-newbie"] = "user-newbie";
+      const res = await setPseudo("newbie", "  Ana  ");
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toEqual({ id: "user-newbie", pseudo: "Ana" });
     });
 
     it("rejects a pseudo already taken, whatever its case", async () => {
-      expect((await setPseudo("bob", "alice")).statusCode).toBe(409);
+      tokens["t-newbie"] = "user-newbie";
+      const res = await setPseudo("newbie", "alice");
+      expect(res.statusCode).toBe(409);
+      expect(res.json()).toEqual({ error: "Pseudo already taken" });
     });
 
-    it("lets a player keep or change their own pseudo", async () => {
-      expect((await setPseudo("alice", "Alice")).statusCode).toBe(200);
-      expect((await setPseudo("alice", "Alicia")).statusCode).toBe(200);
+    it("accepts the same pseudo sent again, so a retry after a lost response succeeds", async () => {
+      const res = await setPseudo("alice", "Alice");
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toEqual({ id: "user-alice", pseudo: "Alice" });
+    });
+
+    it("never changes a pseudo once chosen", async () => {
+      const res = await setPseudo("alice", "Alicia");
+      expect(res.statusCode).toBe(409);
+      expect(res.json()).toEqual({ error: "Pseudo already chosen" });
+      expect((await call("GET", "/me", "alice")).json().pseudo).toBe("Alice");
     });
 
     it.each(["A", "<script>", "x".repeat(17), ""])("rejects invalid pseudo %j", async (pseudo) => {
-      expect((await setPseudo("alice", pseudo)).statusCode).toBe(400);
+      tokens["t-newbie"] = "user-newbie";
+      expect((await setPseudo("newbie", pseudo)).statusCode).toBe(400);
+    });
+  });
+
+  describe("pseudo availability", () => {
+    const check = (pseudo: string) => call("GET", `/pseudos/${encodeURIComponent(pseudo)}/available`, "alice");
+
+    it("tells that a free pseudo is available", async () => {
+      expect((await check("Gordon")).json()).toEqual({ pseudo: "Gordon", available: true });
+    });
+
+    it("tells that a taken pseudo is not, whatever its case", async () => {
+      expect((await check("bOb")).json()).toEqual({ pseudo: "bOb", available: false });
+    });
+
+    it.each(["A", "<script>", "x".repeat(17)])("rejects invalid pseudo %j with 400", async (pseudo) => {
+      expect((await check(pseudo)).statusCode).toBe(400);
+    });
+  });
+
+  describe("player history", () => {
+    it("lists own finished games, newest first, without abandoned or open ones", async () => {
+      await play("alice", 100, 180_000, 1);
+      await play("bob", 999, 180_000, 1);
+      await play("alice", 250, 181_000, 2);
+      const abandoned = (await call("POST", "/games", "alice", { levelId: 3 })).json().gameId;
+      await call("POST", `/games/${abandoned}/abandon`, "alice");
+      await call("POST", "/games", "alice", { levelId: 4 }); // still in progress
+
+      const { games } = (await call("GET", "/me/games", "alice")).json();
+      expect(games.map((g: { levelId: number; score: number }) => [g.levelId, g.score])).toEqual([
+        [2, 250],
+        [1, 100],
+      ]);
+      expect(games[0]).toMatchObject({ durationMs: 181_000 });
+      expect(games[0].gameId).toMatch(/^[0-9a-f-]{36}$/);
+    });
+
+    it("respects the limit and validates it", async () => {
+      await play("alice", 100);
+      await play("alice", 200);
+      expect((await call("GET", "/me/games?limit=1", "alice")).json().games).toHaveLength(1);
+      expect((await call("GET", "/me/games?limit=1000", "alice")).statusCode).toBe(400);
+    });
+
+    it("returns an empty list for a player who never played", async () => {
+      expect((await call("GET", "/me/games", "bob")).json()).toEqual({ games: [] });
+    });
+  });
+
+  describe("best scores", () => {
+    it("returns the best score of the player on each level they played", async () => {
+      await play("alice", 100, 180_000, 1);
+      await play("alice", 300, 180_000, 1);
+      await play("alice", 200, 180_000, 3);
+      await play("bob", 500, 180_000, 2);
+      expect((await call("GET", "/me/best", "alice")).json()).toEqual({
+        scores: [
+          { levelId: 1, score: 300 },
+          { levelId: 3, score: 200 },
+        ],
+      });
+    });
+
+    it("returns an empty list for a player who never played", async () => {
+      expect((await call("GET", "/me/best", "carol")).json()).toEqual({ scores: [] });
     });
   });
 
