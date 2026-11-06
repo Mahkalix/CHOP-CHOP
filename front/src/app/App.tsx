@@ -22,6 +22,7 @@ export function App() {
     document.title = `${titles[route]} · CHOP CHOP`;
     heading.current?.focus();
   }, [route]);
+  if (route === 'accueil') return <HomePage />;
   return <div className={styles.page}>
     <a className={styles.skipLink} href="#contenu" onClick={event => { event.preventDefault(); document.getElementById('contenu')?.focus(); }}>Aller au contenu</a>
     <header className={styles.header}>
@@ -32,7 +33,7 @@ export function App() {
     <main id="contenu" tabIndex={-1} className={styles.content}>
       <p className={styles.eyebrow}>UN SERVICE. UN CHEF. À TOI DE JOUER.</p>
       <h1 ref={heading} tabIndex={-1}>{titles[route]}</h1>
-      {route === 'accueil' ? <HomePage /> : route === 'regles' ? <section className={styles.panel} aria-label="Règles du jeu">
+      {route === 'regles' ? <section className={styles.panel} aria-label="Règles du jeu">
         <p>Sers les bonnes assiettes avant la fin des trois minutes.</p>
         <dl><dt>ZQSD / flèches</dt><dd>Déplacer le chef.</dd><dt>E</dt><dd>Prendre, poser, assembler et servir.</dd><dt>C maintenue</dt><dd>Découper pendant 3 secondes, les mains libres.</dd></dl>
         <ol><li>Prends une tomate avec E.</li><li>Pose-la sur la planche avec E, puis maintiens C pour la découper.</li><li>Pose une assiette au poste ASSEMBLER et ajoutes-y la tomate.</li><li>Apporte l’assiette au poste SERVIR, vers la salle à droite.</li></ol>
