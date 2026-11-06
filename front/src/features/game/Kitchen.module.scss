@@ -2,3 +2,6 @@
 .exit, .hint { position: absolute; background: #f7f1e6; color: black; padding: 10px 20px; font-weight: 600; }
 .exit { top: 16px; right: 16px; border: 2px solid black; }
 .hint { bottom: 16px; left: 50%; transform: translateX(-50%); margin: 0; }
+
+.inventory { position: absolute; top: 16px; left: 16px; width: 520px; padding: 12px 16px; background: #f7f1e6; border: 2px solid #922f1f; font-size: 18px; }
+.inventory p { margin: 6px 0 0; }
