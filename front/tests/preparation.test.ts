@@ -16,7 +16,7 @@ it('requires the tomato, chopping station, free hands and sustained cutting time
   const occupiedHands = interact(initial, station('plates')).inventory;
   expect(advancePreparation(occupiedHands, 4000, 'chopping').inventory).toBe(occupiedHands);
   const halfway = advancePreparation(initial, 1500, 'chopping').inventory;
-  expect(halfway.surfaces.chopping).toMatchObject({ state: 'whole', cutMs: 1500 });
+  expect(halfway.surfaces.chopping).toMatchObject({ state: 'raw', cutMs: 1500 });
   const finished = advancePreparation(halfway, 1500, 'chopping');
   expect(finished.inventory.surfaces.chopping).toMatchObject({ id: initial.surfaces.chopping!.id, state: 'chopped', cutMs: 3000 });
   expect(finished.messages).toEqual(['Tomate découpée.']);
@@ -44,7 +44,7 @@ it('cooks autonomously, warns at completion, then burns after the extra interval
   expect(cooked.messages[0]).toContain('Viande cuite');
   expect(advancePreparation(cooked.inventory, 5999, null).inventory.surfaces.grill).toMatchObject({ state: 'cooked' });
   const burned = advancePreparation(cooked.inventory, 6000, null);
-  expect(burned.inventory.surfaces.grill).toMatchObject({ state: 'burned', cookMs: 14000 });
+  expect(burned.inventory.surfaces.grill).toMatchObject({ state: 'burnt', cookMs: 14000 });
   expect(burned.messages[0]).toContain('Viande brûlée');
   expect(describeItem(burned.inventory.surfaces.grill!)).toBe('Viande brûlée');
   expect(advancePreparation(burned.inventory, 1000, null).inventory).toBe(burned.inventory);
@@ -59,7 +59,7 @@ it('stops heating when meat is carried or on an ordinary worktop, preserving its
   expect(advancePreparation(inventory, 60000, null).inventory.surfaces['counter-left']).toBe(meat);
   inventory = interact(inventory, station('counter-left')).inventory;
   inventory = interact(inventory, station('grill')).inventory;
-  expect(advancePreparation(inventory, 6000, null).inventory.surfaces.grill).toMatchObject({ id: meat!.id, state: 'burned' });
+  expect(advancePreparation(inventory, 6000, null).inventory.surfaces.grill).toMatchObject({ id: meat!.id, state: 'burnt' });
 });
 
 it('does not transform the wrong ingredient or anything on an ordinary surface', () => {
@@ -101,7 +101,7 @@ it('never mutates the input or changes item identity, counts or unrelated conten
   Object.freeze(initial.surfaces);
   Object.freeze(initial);
   const result = advancePreparation(initial, 3000, 'chopping').inventory;
-  expect(initial.surfaces.chopping).toMatchObject({ state: 'whole', cutMs: 0 });
+  expect(initial.surfaces.chopping).toMatchObject({ state: 'raw', cutMs: 0 });
   expect(result.surfaces.chopping!.id).toBe(initial.surfaces.chopping!.id);
   expect(result.nextItemId).toBe(initial.nextItemId);
   expect(result.discarded).toBe(initial.discarded);

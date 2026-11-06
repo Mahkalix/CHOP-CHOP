@@ -10,7 +10,7 @@ import { advancePreparation, getPreparationProgress, type PreparationProgress } 
 const textureOf = (item: Item) => {
   if (item.kind === 'plate') {
     const recipe = identifyRecipe(item.ingredients);
-    return recipe ? `item-dish-${recipe.id}` : 'item-plate';
+    return recipe ? 'item-' + ({ 'prepared-tomato': 'dish-tomato', 'grilled-meat': 'dish-meat', 'mixed-plate': 'dish-mixed' }[recipe.id]) : 'item-plate';
   }
   if (item.kind === 'tomato') return 'item-' + (item.state === 'chopped' ? 'chopped' : 'whole');
   return 'item-' + (item.state === 'raw' ? 'meat' : item.state);
@@ -49,7 +49,7 @@ export class KitchenScene extends Phaser.Scene {
     for (const key of new Set(stations.map(station => station.texture))) {
       this.load.image(key, `/kitchen/${key}.png`);
     }
-    for (const name of ['whole', 'chopped', 'meat', 'cooked', 'burned', 'plate', 'dish-tomato', 'dish-meat', 'dish-mixed']) {
+    for (const name of ['whole', 'chopped', 'meat', 'cooked', 'burnt', 'plate', 'dish-tomato', 'dish-meat', 'dish-mixed']) {
       this.load.svg('item-' + name, '/kitchen/items/' + name + '.svg');
     }
     this.load.svg('pan', '/kitchen/items/pan.svg');
@@ -151,7 +151,7 @@ export class KitchenScene extends Phaser.Scene {
     this.choppingCloud.clear();
     this.restKnife();
     const tomato = target && this.inventory.surfaces[target.id];
-    if (target?.id === 'chopping' && tomato?.kind === 'tomato' && tomato.state === 'whole'
+    if (target?.id === 'chopping' && tomato?.kind === 'tomato' && tomato.state === 'raw'
       && this.cutKey.isDown && !this.inventory.carried) {
       this.animateChop(target.x + 72, target.y + 68, tomato.cutMs / 270);
     }

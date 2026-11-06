@@ -6,6 +6,7 @@ import type { Repository } from "./repository.js";
 import { gameRoutes } from "./routes/games.js";
 import { leaderboardRoutes } from "./routes/leaderboard.js";
 import { meRoutes } from "./routes/me.js";
+import { recipesRoutes } from "./routes/recipes.js";
 
 export interface AppOptions {
   repository: Repository;
@@ -46,6 +47,7 @@ export async function buildApp({
   await app.register(meRoutes, deps);
   await app.register(gameRoutes, deps);
   await app.register(leaderboardRoutes, deps);
+  await app.register(recipesRoutes);
 
   return app;
 }

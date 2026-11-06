@@ -1,17 +1,13 @@
+import { RECIPES, matchRecipe } from '@chopchop/shared';
 import type { Ingredient, Plate } from './interactions';
 
-export type RecipeId = 'tomato' | 'meat' | 'mixed';
-type Requirement = { kind: 'tomato'; state: 'chopped' } | { kind: 'meat'; state: 'cooked' };
-/** Compositions already shown in the prototype rules; final level allocation belongs to #14. */
-export const recipes: readonly { id: RecipeId; label: string; ingredients: readonly Requirement[] }[] = [
-  { id: 'tomato', label: 'Assiette de tomate', ingredients: [{ kind: 'tomato', state: 'chopped' }] },
-  { id: 'meat', label: 'Viande grillée', ingredients: [{ kind: 'meat', state: 'cooked' }] },
-  { id: 'mixed', label: 'Assiette mixte', ingredients: [{ kind: 'tomato', state: 'chopped' }, { kind: 'meat', state: 'cooked' }] },
-];
+export type { RecipeId } from '@chopchop/shared';
+/** Labels adapt the shared catalog for the HUD; recipe identities/compositions stay shared. */
+export const recipes = RECIPES.map(recipe => ({ ...recipe, label: recipe.name }));
 
 export function identifyRecipe(ingredients: readonly Ingredient[]) {
-  return recipes.find(recipe => recipe.ingredients.length === ingredients.length
-    && recipe.ingredients.every(required => ingredients.filter(item => item.kind === required.kind && item.state === required.state).length === 1)) ?? null;
+  const id = matchRecipe(ingredients);
+  return recipes.find(recipe => recipe.id === id) ?? null;
 }
 
 export function addIngredient(plate: Plate, ingredient: Ingredient): Plate | null {

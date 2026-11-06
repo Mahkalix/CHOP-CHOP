@@ -7,26 +7,26 @@ import { stations } from '../src/features/game/stations';
 const tomato: Ingredient = { id: 2, kind: 'tomato', state: 'chopped', cutMs: 3000 };
 const meat: Ingredient = { id: 3, kind: 'meat', state: 'cooked', cookMs: 8000 };
 const empty: Plate = { id: 1, kind: 'plate', ingredients: [] };
-const order: ActiveOrder = { id: 'order-1', recipeId: 'tomato', createdAt: 100, expiresAt: 1000 };
+const order: ActiveOrder = { id: 'order-1', recipeId: 'prepared-tomato', createdAt: 100, expiresAt: 1000 };
 const station = (id: string) => stations.find(value => value.id === id)!;
 const withPlate = (plate: Plate): Inventory => ({ ...createInventory(), carried: plate, nextItemId: 4 });
 const nested = (items: readonly (Item | null)[]) => items.flatMap(item => !item ? [] : item.kind === 'plate' ? [item, ...item.ingredients] : [item]);
 
 it('assembles every proposed recipe exactly, in either order for the mixed plate', () => {
-  expect(identifyRecipe([tomato])?.id).toBe('tomato');
-  expect(identifyRecipe([meat])?.id).toBe('meat');
-  expect(identifyRecipe([tomato, meat])?.id).toBe('mixed');
-  expect(identifyRecipe([meat, tomato])?.id).toBe('mixed');
+  expect(identifyRecipe([tomato])?.id).toBe('prepared-tomato');
+  expect(identifyRecipe([meat])?.id).toBe('grilled-meat');
+  expect(identifyRecipe([tomato, meat])?.id).toBe('mixed-plate');
+  expect(identifyRecipe([meat, tomato])?.id).toBe('mixed-plate');
   expect(addIngredient(addIngredient(empty, meat)!, tomato)).toEqual({ ...empty, ingredients: [meat, tomato] });
-  expect(describeItem(addIngredient(empty, tomato)!)).toBe('Assiette de tomate');
+  expect(describeItem(addIngredient(empty, tomato)!)).toBe('Tomate préparée');
 });
 
 it('refuses raw, burned, duplicate or extra ingredients without modifying the plate', () => {
   const plate = addIngredient(empty, tomato)!;
   expect(addIngredient(plate, tomato)).toBeNull();
   expect(addIngredient(plate, { ...meat, state: 'raw' })).toBeNull();
-  expect(addIngredient(plate, { ...meat, state: 'burned' })).toBeNull();
-  expect(addIngredient(empty, { ...tomato, state: 'whole', cutMs: 0 })).toBeNull();
+  expect(addIngredient(plate, { ...meat, state: 'burnt' })).toBeNull();
+  expect(addIngredient(empty, { ...tomato, state: 'raw', cutMs: 0 })).toBeNull();
   expect(identifyRecipe([tomato, tomato])).toBeNull();
   expect(identifyRecipe([])).toBeNull();
   expect(empty.ingredients).toEqual([]);
@@ -55,7 +55,7 @@ it('retrieves a filled plate intact and discards the plate and its contents toge
 it('serves an exact recipe to one active matching order and retains the delivery payload for scoring', () => {
   const plate = addIngredient(empty, tomato)!;
   const initial = withPlate(plate);
-  const other: ActiveOrder = { ...order, id: 'meat-order', recipeId: 'meat' };
+  const other: ActiveOrder = { ...order, id: 'meat-order', recipeId: 'grilled-meat' };
   const result = attemptDelivery(initial, [other, order], 500);
   expect(result.inventory.carried).toBeNull();
   expect(result.inventory.nextItemId).toBe(initial.nextItemId);
@@ -110,7 +110,7 @@ it('conserves every spawned identity through the full mixed-recipe chain and del
   inventory = advancePreparation(inventory, 8000, null).inventory;
   use('grill'); use('assembly'); use('assembly');
   expect(inventory.carried).toMatchObject({ kind: 'plate', ingredients: [{ state: 'chopped' }, { state: 'cooked' }] });
-  const result = attemptDelivery(inventory, [{ ...order, recipeId: 'mixed' }], 500);
+  const result = attemptDelivery(inventory, [{ ...order, recipeId: 'mixed-plate' }], 500);
   expect(result.event).not.toBeNull();
   const allItems = nested([result.inventory.carried, ...Object.values(result.inventory.surfaces), result.event!.plate]);
   expect(allItems.length + result.inventory.discarded).toBe(inventory.nextItemId - 1);

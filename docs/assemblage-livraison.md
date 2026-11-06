@@ -6,9 +6,9 @@ Cette étape dépend des états d’ingrédients de #17 (PR #46). Aucun fichier 
 
 Poser une assiette vide sur Assembler ou un plan de travail. Avec E, ajouter un ingrédient préparé porté à cette assiette, puis la reprendre avec les mains libres. Les dessins et le nom du plat suivent l’objet pendant le transport.
 
-`recipes.ts` centralise les trois compositions déjà proposées dans les règles : tomate découpée, viande cuite, ou les deux. L’ordre d’ajout est libre. Le prototype refuse un ingrédient brut, brûlé, en double ou incompatible et le laisse dans la main du chef. Il ne remplace jamais le contenu existant. Jeter une assiette supprime aussi ses ingrédients. Les identités des ingrédients sont conservées dans `Plate.ingredients` pour contrôler les transferts.
+`recipes.ts` utilise `RECIPES` et `matchRecipe` de `@chopchop/shared`, livrés par #14, pour les trois compositions du prototype : tomate découpée, viande cuite, ou les deux. L’ordre d’ajout est libre. Le prototype refuse un ingrédient brut, brûlé, en double ou incompatible et le laisse dans la main du chef. Il ne remplace jamais le contenu existant. Jeter une assiette supprime aussi ses ingrédients. Les identités des ingrédients sont conservées dans `Plate.ingredients` pour contrôler les transferts.
 
-Ces compositions et la politique de refus restent à confirmer avec l’équipe (#14/#18) ; elles ne sont pas présentées comme des décisions finales.
+Le catalogue partagé conserve ses valeurs de prototype ; la politique de refus reste à confirmer avec l’équipe (#18) ; elles ne sont pas présentées comme des décisions finales.
 
 ## Livraison et contrat avec #19
 
