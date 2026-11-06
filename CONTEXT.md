@@ -91,6 +91,7 @@ La démonstration de référence est un joueur authentifié qui lance le niveau 
 - Faire évoluer une fonctionnalité par tranche observable, idéalement utilisable dans le parcours normal. Éviter un grand module qui mélange déplacements, objets, commandes, score, réseau et affichage. Séparer ces responsabilités quand elles ont des raisons différentes de changer, sans multiplier les couches abstraites.
 - La page `documentation/docs/conventions.md` demande des fonctions de moins de 50 lignes et des fichiers de moins de 800 lignes. Utiliser ces bornes comme signal de relecture : si un bloc les dépasse, vérifier s'il mélange plusieurs responsabilités, puis extraire seulement une partie cohérente. Elles ne remplacent pas la lisibilité ni ne justifient de découper artificiellement une logique.
 - Employer des noms explicites pour les états, événements et fonctions. Préférer une fonction courte qui exprime une règle à une suite de conditions dispersées. Garder une source de vérité pour le score, le chrono, l'objet porté et l'état d'une partie.
+- **Convention confirmée par Sabrina le 6 novembre 2026** : écrire le code en anglais, notamment les noms de fichiers de code, variables, fonctions, types et commentaires techniques. Les textes visibles dans l'interface du jeu sont en français. Garder les contrats et noms de données déjà en place lorsqu'un renommage casserait des appelants ou des données ; traiter un éventuel renommage dans un changement coordonné.
 - Préserver les comportements existants, y compris les données créées avant un changement. Pour une modification du contrat HTTP ou de la base, examiner tous les appelants, les migrations et les anciens enregistrements. Une opération qui peut échouer ou être rejouée doit laisser un état cohérent.
 - Ne pas ajouter de dépendance, de framework, de configuration ou de nouvel utilitaire pour éviter quelques lignes de code. Réutiliser les structures déjà présentes si elles restent lisibles. Supprimer le code mort seulement après avoir vérifié ses appelants.
 - Suivre le style des fichiers voisins. Le dépôt n'a actuellement ni commande de lint ni configuration de formatage commune repérée. Éviter les reformatages massifs dans une PR fonctionnelle ; la convention de formatage pourra être décidée séparément par l'équipe.
@@ -106,7 +107,7 @@ La démonstration de référence est un joueur authentifié qui lance le niveau 
 
 ## Branches, commits et PR
 
-La page `documentation/docs/conventions.md` indique **une branche et une PR par fonctionnalité, avec revue avant fusion dans `main`**. Elle ne fixe pas de forme unique pour le nom des branches. L'historique montre notamment `feat/8-API-and-BDD`, `feat/api-setup` et `10-front-menu-navigation`. **Proposition de nommage à valider par l'équipe** : `feat/<numéro>-<sujet>`, `fix/<numéro>-<sujet>` ou `docs/<numéro>-<sujet>`, avec un sujet court en minuscules et des tirets. Sans issue, ne pas inventer un numéro. Éviter plusieurs branches qui modifient en parallèle la même zone sans coordination.
+La page `documentation/docs/conventions.md` indique **une branche et une PR par fonctionnalité, avec revue avant fusion dans `main`**. **Convention confirmée par Sabrina le 6 novembre 2026** : écrire les noms de branches entièrement en minuscules et séparer les mots par des tirets, par exemple `feat/8-api-and-bdd` ou `docs/30-contexte-projet`. Le numéro d'issue peut précéder le sujet lorsqu'il existe. Sans issue, ne pas inventer un numéro. L'ancien nom `feat/8-API-and-BDD` reste cité dans l'historique, mais ne suit pas cette convention. Éviter plusieurs branches qui modifient en parallèle la même zone sans coordination.
 
 La même page documente des commits au format `type: description`, avec `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf` et `ci`. Employer un message qui explique le changement. Les commits, pushs et PR restent effectués selon les instructions de la personne responsable de la tâche.
 
@@ -129,6 +130,6 @@ Dans la description de PR, indiquer le besoin, les parties du code touchées, ce
 4. Emplacement du module Phaser et contrat concret entre le jeu et les interfaces React ; la répartition des responsabilités est déjà décidée.
 5. Classement de toutes les parties ou du meilleur score par joueur, départage et affichage du rang personnel.
 6. Alignement sûr des cinq niveaux actuellement acceptés en code avec les trois niveaux retenus.
-7. Validation par l'équipe de la proposition de nommage des branches et des détails de revue et de fusion qui ne sont pas fixés dans Docusaurus.
+7. Détails de revue et de fusion qui ne sont pas fixés dans Docusaurus.
 
 Chaque décision prise doit indiquer la date, la personne qui l'a validée, la règle retenue et les fichiers ou tickets à mettre en cohérence. L'ancien cahier des charges propose notamment des recettes, des touches, des durées et une formule de score ; ces valeurs restent des **propositions** tant qu'elles ne sont pas validées.

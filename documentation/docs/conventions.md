@@ -14,9 +14,13 @@ Les règles ci-dessous reprennent le [contexte projet du 6 novembre 2026](./refe
 
 Le front utilise React, TypeScript et des modules SCSS. Le back utilise Fastify, Drizzle et Zod. Les limites de niveaux et les contrats de données partagés doivent être réutilisés côté front plutôt que recopiés.
 
+Le code, ses identifiants et ses commentaires techniques sont écrits en anglais. Les textes visibles dans l'interface du jeu sont en français. Conserver les contrats et données existants lors d'un changement de nom, ou coordonner leur migration.
+
 ## Branches et pull requests
 
 Une branche et une pull request correspondent à une fonctionnalité. Une revue est nécessaire avant la fusion dans `main`. Les commits, les pushs et les pull requests sont réalisés par les membres de l’équipe.
+
+Les noms des nouvelles branches sont entièrement en minuscules, avec les mots séparés par des tirets. Exemples : `feat/8-api-and-bdd` et `docs/30-contexte-projet`. Un ancien nom de branche qui ne suit pas cette convention reste historique.
 
 Les commits suivent le format `type: description` :
 
