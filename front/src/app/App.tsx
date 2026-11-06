@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Ranking } from '../features/leaderboard/Ranking';
 import { HomePage } from '../features/home/HomePage';
 import styles from '../features/home/HomePage.module.scss';
+
+const Kitchen = lazy(() => import('../features/game/Kitchen'));
 
 type Route = 'accueil' | 'jouer' | 'regles' | 'classement';
 const routes: Route[] = ['accueil', 'jouer', 'regles', 'classement'];
@@ -24,19 +26,16 @@ export function App() {
     heading.current?.focus();
   }, [route]);
   if (route === 'accueil') return <HomePage />;
-  const backLabel = route === 'regles' ? 'COMPRIS, RETOUR' : route === 'jouer' ? 'RETOUR À L’ACCUEIL' : 'RETOUR';
+  if (route === 'jouer') return <Suspense fallback={<p>MISE EN PLACE…</p>}><Kitchen /></Suspense>;
+  const backLabel = route === 'regles' ? 'COMPRIS, RETOUR' : 'RETOUR';
   return (
     <main className={styles.page} data-screen={route}>
       <header className={styles.header}>
-        {route !== 'jouer' && <img src="/menu/logo.png" alt="CHOP CHOP" />}
+        <img src="/menu/logo.png" alt="CHOP CHOP" />
         <h1 ref={heading} tabIndex={-1}>{titles[route].toUpperCase()}</h1>
       </header>
       {route === 'regles' && <Rules />}
       {route === 'classement' && <Ranking />}
-      {route === 'jouer' && <section className={styles.loading}>
-        <h2>La cuisine se prépare.</h2>
-        <p>Les commandes arrivent, à toi de jouer !</p>
-      </section>}
       <a className={styles.back} href="#accueil">{backLabel}</a>
     </main>
   );
