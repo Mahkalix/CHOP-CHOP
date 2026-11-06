@@ -23,7 +23,7 @@ export interface Repository {
   isPseudoAvailable(pseudo: string): Promise<boolean>;
   /** Finished games of a player, newest first. */
   playerGames(userId: string, limit: number): Promise<PlayerGame[]>;
-  /** Best score of a player on each level they have finished, ordered by level. */
+  /** Best score of a player on each level they have finished, ordered by level (max score, same as the leaderboard). */
   bestScores(userId: string): Promise<BestScore[]>;
   /**
    * Starts a game with the latest rules version. The user must have a profile.
@@ -38,16 +38,39 @@ export interface Repository {
     score: number;
     bestCombo: number;
     finishedAt: Date;
-  }): Promise<{ rank: number; durationMs: number } | null>;
+  }): Promise<{ rank: number; durationMs: number; bestScore: number; isRecord: boolean } | null>;
   abandonGame(gameId: string, userId: string, at: Date): Promise<boolean>;
   top(levelId: number, limit: number): Promise<LeaderboardEntry[]>;
 }
 
 type Db = ReturnType<typeof createDb>["db"];
 
-/** Game duration in whole milliseconds, computed in SQL so that ranking is consistent everywhere. */
+/** Game duration in whole milliseconds, computed in SQL. `rankedBestGames` uses the same formula. */
 const durationMs = (p: typeof partie) =>
   sql<number>`(extract(epoch from (${p.dateFin} - ${p.dateDebut})) * 1000)::int`;
+
+/**
+ * Leaderboard of a level: one row per player (their best finished game), ranked.
+ * Ordering: score desc, then duration asc, then oldest first, then game id. It never ties,
+ * so `rank` is unique. `top` and `finishGame` both use it so they always agree.
+ * The score of a player's best game is always their max score, which is what `bestScores` returns:
+ * if "best" ever stops being score-first, update `bestScores` too.
+ * To be used inside a `with` clause: it defines the CTEs `best` and `ranked`.
+ */
+const rankedBestGames = (levelId: number) => sql`
+  best as (
+    select distinct on (p.id_joueur)
+      p.id_joueur, p.id_partie, p.score_final, p.date_fin,
+      (extract(epoch from (p.date_fin - p.date_debut)) * 1000)::int as duree_ms
+    from partie p
+    where p.id_niveau = ${levelId} and p.statut = 'terminee'
+    order by p.id_joueur, p.score_final desc, duree_ms asc, p.date_fin asc, p.id_partie asc
+  ),
+  ranked as (
+    select b.*,
+      row_number() over (order by b.score_final desc, b.duree_ms asc, b.date_fin asc, b.id_partie asc)::int as rank
+    from best b
+  )`;
 
 const UNIQUE_VIOLATION = "23505";
 function isUniqueViolation(err: unknown): boolean {
@@ -167,35 +190,32 @@ export function createRepository(db: Db): Repository {
           .update(partie)
           .set({ statut: "terminee", dateFin: finishedAt, scoreFinal: score, meilleurCombo: bestCombo })
           .where(and(eq(partie.idPartie, gameId), eq(partie.idJoueur, userId), eq(partie.statut, "en_cours")))
-          .returning({ id: partie.idPartie });
-        if (updated.length === 0) return null;
+          .returning({ id: partie.idPartie, levelId: partie.idNiveau });
+        const game = updated[0];
+        if (!game) return null;
 
-        // Same ordering as `top`: score desc, then duration asc, then oldest first, then id.
-        const result = await tx.execute<{ duration_ms: number; rank: number }>(sql`
-          with me as (
-            select id_partie, id_niveau, score_final, date_fin,
-                   (extract(epoch from (date_fin - date_debut)) * 1000)::int as duree_ms
-            from partie where id_partie = ${gameId}
-          )
-          select me.duree_ms as duration_ms,
-                 1 + (
-                   select count(*)::int from partie p
-                   where p.id_niveau = me.id_niveau and p.statut = 'terminee' and p.id_partie <> me.id_partie
-                     and (
-                       p.score_final > me.score_final
-                       or (p.score_final = me.score_final
-                           and (extract(epoch from (p.date_fin - p.date_debut)) * 1000)::int < me.duree_ms)
-                       or (p.score_final = me.score_final
-                           and (extract(epoch from (p.date_fin - p.date_debut)) * 1000)::int = me.duree_ms
-                           and (p.date_fin < me.date_fin
-                                or (p.date_fin = me.date_fin and p.id_partie < me.id_partie)))
-                     )
-                 ) as rank
-          from me
+        // The rank is the one of the player's best game on this level, which may be an older one.
+        const result = await tx.execute<{
+          duration_ms: number;
+          rank: number;
+          best_score: number;
+          is_record: boolean;
+        }>(sql`
+          with ${rankedBestGames(game.levelId)}
+          select r.rank, r.score_final as best_score, (r.id_partie = ${gameId}) as is_record,
+                 (select (extract(epoch from (g.date_fin - g.date_debut)) * 1000)::int
+                  from partie g where g.id_partie = ${gameId}) as duration_ms
+          from ranked r
+          where r.id_joueur = ${userId}
         `);
         const row = result.rows[0];
         if (!row) throw new Error("Rank query returned no row");
-        return { rank: Number(row.rank), durationMs: Number(row.duration_ms) };
+        return {
+          rank: Number(row.rank),
+          durationMs: Number(row.duration_ms),
+          bestScore: Number(row.best_score),
+          isRecord: Boolean(row.is_record),
+        };
       });
     },
 
@@ -209,25 +229,26 @@ export function createRepository(db: Db): Repository {
     },
 
     async top(levelId, limit) {
-      const duration = durationMs(partie);
-      const rows = await db
-        .select({
-          pseudo: joueur.pseudo,
-          score: partie.scoreFinal,
-          duration,
-          finishedAt: partie.dateFin,
-        })
-        .from(partie)
-        .innerJoin(joueur, eq(joueur.idJoueur, partie.idJoueur))
-        .where(and(eq(partie.idNiveau, levelId), eq(partie.statut, "terminee")))
-        .orderBy(desc(partie.scoreFinal), asc(duration), asc(partie.dateFin), asc(partie.idPartie))
-        .limit(limit);
-      return rows.map((r, i) => ({
-        rank: i + 1,
+      const result = await db.execute<{
+        rank: number;
+        pseudo: string;
+        score_final: number;
+        duree_ms: number;
+        date_fin: Date;
+      }>(sql`
+        with ${rankedBestGames(levelId)}
+        select r.rank, j.pseudo, r.score_final, r.duree_ms, r.date_fin
+        from ranked r
+        join joueur j on j.id_joueur = r.id_joueur
+        order by r.rank
+        limit ${limit}
+      `);
+      return result.rows.map((r) => ({
+        rank: Number(r.rank),
         pseudo: r.pseudo,
-        score: r.score ?? 0,
-        durationMs: Number(r.duration),
-        finishedAt: (r.finishedAt ?? new Date(0)).toISOString(),
+        score: Number(r.score_final),
+        durationMs: Number(r.duree_ms),
+        finishedAt: new Date(r.date_fin).toISOString(),
       }));
     },
   };

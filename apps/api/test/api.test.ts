@@ -12,15 +12,20 @@ function memoryRepository(): Repository & { pseudos: Map<string, string> } {
   const pseudos = new Map<string, string>();
   const games = new Map<string, GameRow>();
   const duration = (g: GameRow) => g.finishedAt!.getTime() - g.startedAt.getTime();
-  const ranked = (levelId: number) =>
-    [...games.values()]
-      .filter((g) => g.levelId === levelId && g.status === "terminee")
-      .sort(
-        (a, b) =>
-          b.score! - a.score! ||
-          duration(a) - duration(b) ||
-          a.finishedAt!.getTime() - b.finishedAt!.getTime(),
-      );
+  const before = (a: GameRow, b: GameRow) =>
+    b.score! - a.score! ||
+    duration(a) - duration(b) ||
+    a.finishedAt!.getTime() - b.finishedAt!.getTime() ||
+    a.id.localeCompare(b.id);
+  /** One game per player (their best), ranked: same rule as the SQL in the real repository. */
+  const ranked = (levelId: number) => {
+    const best = new Map<string, GameRow>();
+    for (const g of [...games.values()].filter((g) => g.levelId === levelId && g.status === "terminee")) {
+      const current = best.get(g.userId);
+      if (!current || before(g, current) < 0) best.set(g.userId, g);
+    }
+    return [...best.values()].sort(before);
+  };
   const isTaken = (pseudo: string) => [...pseudos.values()].some((p) => p.toLowerCase() === pseudo.toLowerCase());
   let seq = 0;
 
@@ -79,7 +84,10 @@ function memoryRepository(): Repository & { pseudos: Map<string, string> } {
       const g = games.get(gameId);
       if (!g || g.userId !== userId || g.status !== "en_cours") return null;
       Object.assign(g, { status: "terminee" as GameStatus, score, finishedAt });
-      return { rank: ranked(g.levelId).indexOf(g) + 1, durationMs: duration(g) };
+      const list = ranked(g.levelId);
+      const index = list.findIndex((r) => r.userId === userId);
+      const best = list[index]!;
+      return { rank: index + 1, durationMs: duration(g), bestScore: best.score!, isRecord: best === g };
     },
     async abandonGame(gameId, userId, at) {
       const g = games.get(gameId);
@@ -291,7 +299,7 @@ describe("API", () => {
     it("ranks a finished game and measures the duration itself", async () => {
       const { res } = await play("alice", 300, 181_500);
       expect(res.statusCode).toBe(200);
-      expect(res.json()).toEqual({ rank: 1, score: 300, durationMs: 181_500 });
+      expect(res.json()).toEqual({ rank: 1, score: 300, durationMs: 181_500, bestScore: 300, isRecord: true });
     });
 
     it("ignores any duration sent by the client", async () => {
@@ -376,6 +384,50 @@ describe("API", () => {
     it("returns a rank consistent with the leaderboard on a tie", async () => {
       await play("bob", 300, 185_000);
       expect((await play("carol", 300, 178_000)).res.json().rank).toBe(1);
+    });
+
+    it("lists each player once, with their best score", async () => {
+      await play("alice", 100);
+      await play("bob", 200);
+      await play("alice", 300);
+      const { entries } = (await call("GET", "/leaderboard/1")).json();
+      expect(entries.map((e: LeaderboardEntry) => [e.rank, e.pseudo, e.score])).toEqual([
+        [1, "Alice", 300],
+        [2, "Bob", 200],
+      ]);
+    });
+
+    it("keeps the record when a player replays with a lower score", async () => {
+      await play("alice", 300);
+      await play("bob", 200);
+      const replay = await play("alice", 50);
+      expect(replay.res.json()).toMatchObject({ rank: 1, score: 50, bestScore: 300, isRecord: false });
+      const { entries } = (await call("GET", "/leaderboard/1")).json();
+      expect(entries.map((e: LeaderboardEntry) => [e.pseudo, e.score])).toEqual([
+        ["Alice", 300],
+        ["Bob", 200],
+      ]);
+    });
+
+    it("returns the new rank when a replay beats the record", async () => {
+      await play("alice", 100);
+      await play("bob", 200);
+      expect((await play("alice", 300)).res.json()).toMatchObject({ rank: 1, bestScore: 300, isRecord: true });
+    });
+
+    it("breaks equal scores of two players by duration, then by who finished first", async () => {
+      await play("bob", 300, 180_000);
+      await play("alice", 300, 180_000);
+      const { entries } = (await call("GET", "/leaderboard/1")).json();
+      expect(entries.map((e: LeaderboardEntry) => e.pseudo)).toEqual(["Bob", "Alice"]);
+    });
+
+    it("keeps the fastest game when a player ties their own record", async () => {
+      await play("alice", 300, 185_000);
+      await play("alice", 300, 178_000);
+      const { entries } = (await call("GET", "/leaderboard/1")).json();
+      expect(entries).toHaveLength(1);
+      expect(entries[0].durationMs).toBe(178_000);
     });
 
     it("only lists finished games of the requested level", async () => {
