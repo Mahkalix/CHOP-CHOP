@@ -7,7 +7,7 @@
     "dev:api": "pnpm --filter @chopchop/api dev",
     "dev:front": "pnpm --filter @chopchop/front dev",
     "build:front": "pnpm --filter @chopchop/front build",
-    "test": "pnpm -r test",
+    "test": "pnpm -r test && node --test scripts/vercel-ignore-build.test.mjs",
     "typecheck": "pnpm -r typecheck"
   },
   "packageManager": "pnpm@11.8.0"

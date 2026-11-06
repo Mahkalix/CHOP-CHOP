@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "corepack enable && pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm build:front",
+  "outputDirectory": "front/dist",
+  "ignoreCommand": "node scripts/vercel-ignore-build.mjs"
+}
