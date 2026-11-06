@@ -10,11 +10,5 @@
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck"
   },
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "^11.8.0",
-      "onFail": "download"
-    }
-  }
+  "packageManager": "pnpm@11.8.0"
 }

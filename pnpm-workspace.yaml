@@ -4,3 +4,4 @@ packages:
   - "packages/*"
 allowBuilds:
   esbuild: true
+  "@parcel/watcher": false
