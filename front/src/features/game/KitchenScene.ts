@@ -14,6 +14,11 @@ export class KitchenScene extends Phaser.Scene {
   private placedItems!: Phaser.GameObjects.Graphics;
   private carriedItem!: Phaser.GameObjects.Graphics;
   private stationSprites = new Map<string, Phaser.GameObjects.Sprite>();
+  private portrait!: Phaser.GameObjects.Image;
+  private readonly facing = new Phaser.Math.Vector2(0, 1);
+  private readonly stride = new Phaser.Math.Vector2();
+  private dashUntil = 0;
+  private static readonly dashDuration = 140;
   private player!: Phaser.Physics.Arcade.Sprite;
   private arrows!: Phaser.Types.Input.Keyboard.CursorKeys;
   private letters!: Record<'Z' | 'Q' | 'S' | 'D', Phaser.Input.Keyboard.Key>;
@@ -29,6 +34,8 @@ export class KitchenScene extends Phaser.Scene {
 
   create() {
     this.inventory = createInventory();
+    this.dashUntil = 0;
+    this.facing.set(0, 1);
     this.targetId = null;
     this.stationSprites.clear();
     this.add.image(0, 0, 'floor').setOrigin(0);
@@ -51,6 +58,14 @@ export class KitchenScene extends Phaser.Scene {
     this.physics.world.setBounds(40, 110, 1360, 720);
     this.player.setCollideWorldBounds(true);
     this.physics.add.collider(this.player, obstacles);
+    this.player.setVisible(false);
+    this.portrait = this.add.image(this.player.x, this.player.y, 'chef').setDisplaySize(128, 160);
+    const camera = this.cameras.main;
+    camera.setBounds(0, 0, 1440, 900).startFollow(this.player);
+    const fitCamera = () => camera.setZoom(Math.max(this.scale.width / 1440, this.scale.height / 900));
+    fitCamera();
+    this.scale.on(Phaser.Scale.Events.RESIZE, fitCamera);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scale.off(Phaser.Scale.Events.RESIZE, fitCamera));
     const keyboard = this.input.keyboard!;
     this.arrows = keyboard.createCursorKeys();
     this.letters = keyboard.addKeys('Z,Q,S,D') as typeof this.letters;
@@ -62,15 +77,24 @@ export class KitchenScene extends Phaser.Scene {
     this.publishStatus(null, 'Approche-toi d’un poste puis appuie sur E.');
   }
 
-  update() {
+  update(time: number) {
     const horizontal = Number(this.arrows.right.isDown || this.letters.D.isDown)
       - Number(this.arrows.left.isDown || this.letters.Q.isDown);
     const vertical = Number(this.arrows.down.isDown || this.letters.S.isDown)
       - Number(this.arrows.up.isDown || this.letters.Z.isDown);
-    const speed = horizontal && vertical ? 260 / Math.SQRT2 : 260;
-    this.player.setVelocity(horizontal * speed, vertical * speed);
-    if (horizontal) this.player.setFlipX(horizontal < 0);
-    this.carriedItem.setPosition(this.player.x + (this.player.flipX ? -44 : 44), this.player.y - 12);
+    const direction = this.stride.set(horizontal, vertical).normalize();
+    const pressed = Phaser.Input.Keyboard.JustDown(this.arrows.space);
+    if (time >= this.dashUntil) {
+      if (direction.lengthSq()) this.facing.copy(direction);
+      if (pressed) this.dashUntil = time + KitchenScene.dashDuration;
+    }
+    const remaining = Math.max(0, this.dashUntil - time);
+    const velocity = remaining ? this.facing : direction;
+    this.player.setVelocity(velocity.x * (remaining ? 700 : 260), velocity.y * (remaining ? 700 : 260));
+    const lift = 16 * Math.sin(Math.PI * remaining / KitchenScene.dashDuration);
+    this.portrait.setPosition(this.player.x, this.player.y - lift);
+    if (velocity.x) this.portrait.setFlipX(velocity.x < 0);
+    this.carriedItem.setPosition(this.player.x + (this.portrait.flipX ? -44 : 44), this.player.y - lift - 12);
     const feet = (this.player.body as Phaser.Physics.Arcade.Body).center;
     const target = closestStation(feet.x, feet.y);
     if ((target?.id ?? null) !== this.targetId) {

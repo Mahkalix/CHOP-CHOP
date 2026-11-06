@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Phaser from 'phaser';
 import { KitchenScene, type InteractionStatus } from './KitchenScene';
 import styles from './Kitchen.module.scss';
@@ -12,8 +13,7 @@ export default function Kitchen() {
     const frame = requestAnimationFrame(() => {
       game = new Phaser.Game({
         type: Phaser.AUTO,
-        width: 1440,
-        height: 900,
+        scale: { mode: Phaser.Scale.RESIZE },
         parent: mount.current!,
         pixelArt: true,
         backgroundColor: '#e4d5bb',
@@ -28,14 +28,19 @@ export default function Kitchen() {
       game?.destroy(true);
     };
   }, []);
-  return <main className={styles.kitchen} aria-label="Cuisine du premier service">
-    <div ref={mount} />
+  return createPortal(<main className={styles.kitchen} aria-label="Cuisine du premier service">
+    <div className={styles.canvas} ref={mount} />
     <a className={styles.exit} href="#accueil">RETOUR À L’ACCUEIL</a>
+    {document.fullscreenEnabled && <button className={styles.fullscreen} onClick={event => {
+      const frame = event.currentTarget.closest('main');
+      if (document.fullscreenElement) void document.exitFullscreen();
+      else if (frame) void frame.requestFullscreen().catch(() => {});
+    }}>PLEIN ÉCRAN</button>}
     <section className={styles.inventory} aria-label="Objet porté">
       <strong>EN MAIN : {status.carried ?? 'Rien'}</strong>
       <p>{status.target ? `POSTE : ${status.target}` : 'Approche-toi d’un poste.'}</p>
       <p role="status">{status.message}</p>
     </section>
-    <p className={styles.hint}>ZQSD ou flèches : BOUGER · E : PRENDRE / POSER</p>
-  </main>;
+    <p className={styles.hint}>ZQSD ou flèches : BOUGER · ESPACE : BONDIR · E : PRENDRE / POSER</p>
+  </main>, document.body);
 }
