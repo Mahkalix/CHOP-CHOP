@@ -8,3 +8,7 @@
 .inventory { position: absolute; top: 64px; left: 12px; width: min(520px, calc(100% - 24px)); padding: 10px 14px; background: #f7f1e6; border: 2px solid #922f1f; font-size: clamp(12px, 1.3vw, 18px); line-height: 1.35; }
 .inventory p { margin: 6px 0 0; }
 .hint { bottom: 12px; left: 50%; transform: translateX(-50%); margin: 0; padding: 10px 16px; width: max-content; max-width: 95%; text-align: center; font-size: clamp(11px, 1.3vw, 16px); }
+
+.preparation { margin-top: 10px; font-size: .9em; }
+.preparation [role='progressbar'] { height: 8px; margin-top: 6px; background: #39312b; }
+.preparation [role='progressbar'] span { display: block; height: 100%; background: #b45215; }
