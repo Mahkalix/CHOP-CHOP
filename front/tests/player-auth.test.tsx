@@ -4,11 +4,12 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import type { Session } from '@supabase/supabase-js';
 import { AuthProvider } from '../src/features/auth/AuthProvider';
+import { AuthForm } from '../src/features/auth/AuthForm';
 import { PlayerGate } from '../src/features/auth/PlayerGate';
 
 const authMock = vi.hoisted(() => ({
   listener: null as null | ((event: string, session: unknown) => void),
-  getSession: vi.fn(), signInAnonymously: vi.fn(), signOut: vi.fn(), unsubscribe: vi.fn(),
+  getSession: vi.fn(), refreshSession: vi.fn(), signInAnonymously: vi.fn(), signOut: vi.fn(), unsubscribe: vi.fn(),
   configured: true,
 }));
 vi.mock('../src/features/auth/client', () => ({ getAuthClient: () => authMock.configured ? { auth: {
@@ -32,7 +33,7 @@ beforeEach(() => {
   vi.stubEnv('VITE_API_URL', 'https://api.example.com');
   sessionStorage.clear();
 });
-afterEach(() => { cleanup(); vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
+afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 
 it('shows a useful unavailable state without configuration', () => {
   authMock.configured = false;
@@ -75,7 +76,7 @@ it('restores a session, handles a taken pseudo, then saves a trimmed profile', a
   const user = userEvent.setup();
   authMock.getSession.mockResolvedValue({ data: { session }, error: null });
   const fetchMock = vi.fn()
-    .mockResolvedValueOnce(response(null, 404))
+    .mockResolvedValueOnce(response({ error: 'Profile not created yet' }, 404))
     .mockResolvedValueOnce(response(null, 409))
     .mockResolvedValueOnce(response(profile));
   vi.stubGlobal('fetch', fetchMock);
@@ -118,6 +119,7 @@ it('keeps an existing pseudo immutable and supports leaving the anonymous sessio
   expect(await screen.findByRole('heading', { name: 'BONJOUR Miso' })).toBeTruthy();
   expect(screen.queryByRole('button', { name: 'Modifier mon pseudo' })).toBeNull();
   expect(screen.queryByLabelText('Pseudo du classement')).toBeNull();
+  vi.spyOn(window, 'confirm').mockReturnValue(true);
   await user.click(screen.getByRole('button', { name: 'Se déconnecter' }));
   expect(await screen.findByRole('button', { name: 'Continuer' })).toBeTruthy();
   expect(authMock.signOut).toHaveBeenCalledWith({ scope: 'local' });
@@ -177,4 +179,122 @@ it('keeps the kitchen mounted while the access token refreshes', async () => {
   expect(screen.getByText('Kitchen running')).toBeTruthy();
   await act(async () => resolveRefresh?.(response(profile)));
   expect(stopped).not.toHaveBeenCalled();
+});
+
+it.each([503, 404])('keeps the kitchen alive after a profile reload fails (%s)', async status => {
+  authMock.getSession.mockResolvedValue({ data: { session }, error: null });
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(response(profile)).mockResolvedValueOnce(response(null, status)));
+  render(<AuthProvider><PlayerGate><input aria-label="Kitchen state" defaultValue="in progress" /></PlayerGate></AuthProvider>);
+  const kitchen = await screen.findByLabelText('Kitchen state');
+  act(() => authMock.listener?.('TOKEN_REFRESHED', { ...session, access_token: 'refreshed' }));
+  await screen.findByRole('alert');
+  expect(screen.getByLabelText('Kitchen state')).toBe(kitchen);
+});
+
+it('refreshes the existing identity after an API 401 instead of creating another account', async () => {
+  const user = userEvent.setup();
+  authMock.getSession.mockResolvedValue({ data: { session }, error: null });
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(response(null, 401)).mockResolvedValueOnce(response(profile)));
+  authMock.refreshSession.mockResolvedValueOnce({ data: { session: null }, error: { status: 503 } });
+  mount();
+  await user.click(await screen.findByRole('button', { name: 'Continuer' }));
+  expect(authMock.signInAnonymously).not.toHaveBeenCalled();
+  authMock.refreshSession.mockResolvedValueOnce({ data: { session }, error: null });
+  await user.click(screen.getByRole('button', { name: 'Continuer' }));
+  expect(await screen.findByText('Ton profil est prêt.')).toBeTruthy();
+  expect(authMock.refreshSession).toHaveBeenCalledTimes(2);
+  expect(authMock.signInAnonymously).not.toHaveBeenCalled();
+});
+
+it('does not create an identity when session restoration fails', async () => {
+  const user = userEvent.setup();
+  authMock.getSession.mockResolvedValue({ data: { session: null }, error: { status: 503 } });
+  mount();
+  await user.click(await screen.findByRole('button', { name: 'Continuer' }));
+  expect(authMock.signInAnonymously).not.toHaveBeenCalled();
+  expect(await screen.findByRole('alert')).toBeTruthy();
+});
+
+it('keeps a pseudo save pending across token refresh and ignores stale GET responses', async () => {
+  const user = userEvent.setup();
+  authMock.getSession.mockResolvedValue({ data: { session }, error: null });
+  let resolveSave: ((value: unknown) => void) | undefined;
+  let saveSignal: AbortSignal | undefined;
+  const fetchMock = vi.fn().mockResolvedValueOnce(response({ error: 'Profile not created yet' }, 404))
+    .mockImplementationOnce((_url, options) => {
+      saveSignal = options.signal;
+      return new Promise(resolve => { resolveSave = resolve; });
+    });
+  vi.stubGlobal('fetch', fetchMock);
+  mount();
+  await user.type(await screen.findByLabelText('Pseudo du classement'), 'Miso');
+  await user.click(screen.getByRole('button', { name: 'Enregistrer le pseudo' }));
+  act(() => authMock.listener?.('TOKEN_REFRESHED', { ...session, access_token: 'refreshed' }));
+  expect(saveSignal?.aborted).toBe(false);
+  expect(screen.getByRole('button', { name: 'Enregistrement…' })).toHaveProperty('disabled', true);
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+  await act(async () => resolveSave?.(response(profile)));
+  expect(await screen.findByText('Ton profil est prêt.')).toBeTruthy();
+});
+
+it('aborts a pending save only when the player screen unmounts', async () => {
+  const user = userEvent.setup();
+  authMock.getSession.mockResolvedValue({ data: { session }, error: null });
+  let saveSignal: AbortSignal | undefined;
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(response({ error: 'Profile not created yet' }, 404))
+    .mockImplementationOnce((_url, options) => { saveSignal = options.signal; return new Promise(() => {}); }));
+  const { unmount } = mount();
+  await user.type(await screen.findByLabelText('Pseudo du classement'), 'Miso');
+  await user.click(screen.getByRole('button', { name: 'Enregistrer le pseudo' }));
+  unmount();
+  expect(saveSignal?.aborted).toBe(true);
+});
+
+it('allows cancelling logout without losing the profile', async () => {
+  const user = userEvent.setup();
+  authMock.getSession.mockResolvedValue({ data: { session }, error: null });
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response(profile)));
+  vi.spyOn(window, 'confirm').mockReturnValue(false);
+  mount();
+  await screen.findByText('Ton profil est prêt.');
+  await user.click(screen.getByRole('button', { name: 'Se déconnecter' }));
+  expect(authMock.signOut).not.toHaveBeenCalled();
+  expect(screen.getByText('Ton profil est prêt.')).toBeTruthy();
+});
+
+it('reports a generic 404 as a service error rather than offering pseudo creation', async () => {
+  authMock.getSession.mockResolvedValue({ data: { session }, error: null });
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response({ error: 'Not Found' }, 404)));
+  mount();
+  expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'Le service joueur est mal configuré. Réessaie plus tard.');
+  expect(screen.queryByLabelText('Pseudo du classement')).toBeNull();
+});
+
+it('reports successful authentication even if the form unmounted before the SDK promise settled', async () => {
+  const user = userEvent.setup();
+  const authenticated = vi.fn();
+  let resolveLogin: ((value: unknown) => void) | undefined;
+  authMock.signInAnonymously.mockImplementation(() => new Promise(resolve => { resolveLogin = resolve; }));
+  const { unmount } = render(<AuthProvider><AuthForm onAuthenticated={authenticated} /></AuthProvider>);
+  await user.click(screen.getByRole('button', { name: 'Continuer' }));
+  await waitFor(() => expect(authMock.signInAnonymously).toHaveBeenCalledOnce());
+  unmount();
+  await act(async () => resolveLogin?.({ data: { session }, error: null }));
+  expect(authenticated).toHaveBeenCalledOnce();
+});
+
+it('does not replace a rejected identity if refresh clears the SDK session', async () => {
+  const user = userEvent.setup();
+  authMock.getSession.mockResolvedValueOnce({ data: { session }, error: null })
+    .mockResolvedValue({ data: { session: null }, error: null });
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response(null, 401)));
+  authMock.refreshSession.mockImplementation(async () => {
+    authMock.listener?.('SIGNED_OUT', null);
+    return { data: { session: null }, error: { status: 503 } };
+  });
+  mount();
+  await user.click(await screen.findByRole('button', { name: 'Continuer' }));
+  await user.click(screen.getByRole('button', { name: 'Continuer' }));
+  expect(authMock.refreshSession).toHaveBeenCalledTimes(2);
+  expect(authMock.signInAnonymously).not.toHaveBeenCalled();
 });

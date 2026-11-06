@@ -14,12 +14,13 @@ export function PlayerGate({ children }: { children?: ReactNode }) {
   if (loading) return <p role="status">Restauration de ta connexion…</p>;
   const token = session?.access_token;
   if (!token || token === rejectedToken) return <AuthForm
+    recoverSession={rejectedToken !== null}
     notice={token === rejectedToken ? 'Ta session a expiré. Reconnecte-toi pour continuer.' : error ?? undefined}
     onAuthenticated={() => setRejectedToken(null)}
   />;
 
   async function signOut() {
-    if (!client || signingOut) return;
+    if (!client || signingOut || !window.confirm('Se déconnecter fait perdre ton profil sur ce navigateur. Continuer ?')) return;
     setSigningOut(true); setLogoutError('');
     try {
       const { error: failure } = await client.auth.signOut({ scope: 'local' });
@@ -47,14 +48,21 @@ function ProfilePanel({ token, onExpired, children }: { token: string; onExpired
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
   const saveController = useRef<AbortController | null>(null);
+  const loadController = useRef<AbortController | null>(null);
   const onExpiredRef = useRef(onExpired);
   onExpiredRef.current = onExpired;
 
   useEffect(() => {
+    if (saveController.current) return;
     const controller = new AbortController();
-    setLoading(!hasProfile.current); setSaving(false); setError(''); setLoadFailed(false);
+    loadController.current = controller;
+    setLoading(!hasProfile.current); setError(''); setLoadFailed(false);
     requestProfile(token, controller.signal).then(data => {
       if (controller.signal.aborted) return;
+      if (!data && hasProfile.current) {
+        setError('Ton profil est temporairement indisponible. Réessaie plus tard.');
+        setLoadFailed(true); setLoading(false); return;
+      }
       hasProfile.current = !!data;
       setProfile(data);
       if (data) setPseudo(data.pseudo);
@@ -65,15 +73,18 @@ function ProfilePanel({ token, onExpired, children }: { token: string; onExpired
       else { setError(failure instanceof Error ? failure.message : 'Profil indisponible.'); setLoadFailed(true); }
       setLoading(false);
     });
-    return () => { controller.abort(); saveController.current?.abort(); };
+    return () => controller.abort();
   }, [token, attempt]);
+
+  useEffect(() => () => saveController.current?.abort(), []);
 
   async function save(event: FormEvent) {
     event.preventDefault();
-    if (saving) return;
+    if (saveController.current) return;
     const parsed = PseudoSchema.safeParse(pseudo);
     if (!parsed.success) { setError('Choisis 2 à 16 caractères : lettres, chiffres, espaces, _ ou -.'); return; }
     const controller = new AbortController();
+    loadController.current?.abort();
     saveController.current = controller;
     setSaving(true); setError('');
     try {
@@ -85,11 +96,13 @@ function ProfilePanel({ token, onExpired, children }: { token: string; onExpired
       if (controller.signal.aborted) return;
       if (failure instanceof ProfileError && failure.status === 401) onExpiredRef.current();
       else setError(failure instanceof Error ? failure.message : 'Enregistrement impossible.');
-    } finally { if (!controller.signal.aborted) setSaving(false); }
+    } finally {
+      if (!controller.signal.aborted) { saveController.current = null; setSaving(false); }
+    }
   }
 
   if (loading) return <p role="status">Chargement de ton profil…</p>;
-  if (loadFailed) return <><p role="alert">{error}</p><button onClick={() => setAttempt(value => value + 1)}>Réessayer</button></>;
+  if (loadFailed && !profile) return <><p role="alert">{error}</p><button onClick={() => setAttempt(value => value + 1)}>Réessayer</button></>;
   return <>
     <h2>{profile ? `BONJOUR ${profile.pseudo}` : 'CHOISIS TON PSEUDO'}</h2>
     {!profile ? <form onSubmit={save} aria-busy={saving}>
@@ -102,5 +115,6 @@ function ProfilePanel({ token, onExpired, children }: { token: string; onExpired
       {children}
     </>}
     {error && <p role="alert">{error}</p>}
+    {loadFailed && profile && <button onClick={() => setAttempt(value => value + 1)}>Réessayer</button>}
   </>;
 }
