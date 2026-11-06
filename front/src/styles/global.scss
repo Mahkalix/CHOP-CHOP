@@ -21,11 +21,9 @@
   box-sizing: border-box;
 }
 html {
-  min-width: 320px;
   background: var(--color-paper);
 }
 body {
-  min-width: 320px;
   min-height: 100vh;
   margin: 0;
 }
@@ -48,4 +46,19 @@ a {
   src: url('/fonts/pixelifysans.ttf') format('truetype');
   font-weight: 400 700;
   font-display: swap;
+}
+
+.game-viewport {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  overflow: clip;
+  background: #f7f1e6;
+}
+
+.game-stage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: center;
 }

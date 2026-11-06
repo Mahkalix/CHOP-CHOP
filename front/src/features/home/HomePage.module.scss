@@ -1,6 +1,6 @@
 .page {
-  min-height: 100vh;
-  padding: clamp(16px, 3vw, 40px);
+  min-height: 900px;
+  padding: clamp(16px, 43.20px, 40px);
   background: #f7f1e6;
   color: #15100d;
   font-family: Inter, Arial, sans-serif;
@@ -24,7 +24,7 @@
   section { flex: 1 1 180px; padding: 20px; background: #e8dcc6; }
   kbd { display: inline-block; padding: 8px; border: 2px solid; margin-bottom: 12px; }
 }
-.loading { text-align: center; padding: 15vh 0; }
+.loading { text-align: center; padding: 135px 0; }
 .back { display: block; text-align: center; padding: 16px; border: 2px solid black; color: white; background: #922f1f; }
 
 .page[data-screen='regles'], .page[data-screen='classement'] {
@@ -86,15 +86,8 @@
   > p { margin: 0 0 20px; font-size:18px; }
   .back { max-width:400px; margin:auto; color:black; background:transparent; }
 }
-@media(max-width:1050px) {
-  .page[data-screen='regles'] .row:nth-of-type(n) { grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .page[data-screen='regles'] .movement { flex-wrap:wrap; justify-content:center; }
-}
-@media(max-width:640px) {
-  .page[data-screen] { padding:16px; }
-  .page[data-screen='regles'] .row:nth-of-type(n) { grid-template-columns:1fr; }
-  .page[data-screen='regles'] .row:nth-of-type(2) section { min-height: auto; }
-}
+
+
 
 .header h1:focus { outline: none; }
 .page[data-screen='regles'] {
