@@ -16,9 +16,9 @@ La connexion se fait par pseudo seul, avec une session anonyme Supabase Auth cô
 
 ## Points à valider ou à intégrer
 
-Valider les trois recettes et les règles d’assemblage et de refus des livraisons.
+Trois recettes sont retenues pour le jeu ; préciser leur contenu et valider les règles d’assemblage et de refus des livraisons.
 
-Confirmer la cuisson autonome, la suspension de découpe et les durées proposées.
+Durées confirmées : 3 secondes pour découper un ingrédient et 8 secondes pour cuire la viande. Confirmer la cuisson autonome, la suspension de découpe et le délai avant brûlure (6 secondes proposées, non validées).
 
 Valider la génération des commandes, le barème des combos et les plafonds provisoires de score de chaque niveau.
 
