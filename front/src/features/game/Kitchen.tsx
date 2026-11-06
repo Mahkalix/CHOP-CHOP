@@ -6,7 +6,7 @@ import styles from './Kitchen.module.scss';
 
 export default function Kitchen() {
   const mount = useRef<HTMLDivElement>(null);
-  const [status, setStatus] = useState<InteractionStatus>({ carried: null, target: null, message: 'Approche-toi d’un poste puis appuie sur E.', preparation: null });
+  const [status, setStatus] = useState<InteractionStatus>({ carried: null, target: null, message: 'Approche-toi d’un poste puis appuie sur E.', preparation: null, orders: [] });
   useEffect(() => {
     let game: Phaser.Game | undefined;
     // Defer creation so StrictMode can clean up its first effect before Phaser boots.
@@ -36,6 +36,7 @@ export default function Kitchen() {
       if (document.fullscreenElement) void document.exitFullscreen();
       else if (frame) void frame.requestFullscreen().catch(() => {});
     }}>PLEIN ÉCRAN</button>}
+    <div className={styles.hud}>
     <section className={styles.inventory} aria-label="Objet porté">
       <strong>EN MAIN : {status.carried ?? 'Rien'}</strong>
       <p>{status.target ? `POSTE : ${status.target}` : 'Approche-toi d’un poste.'}</p>
@@ -47,6 +48,11 @@ export default function Kitchen() {
         </div>
       </div>}
     </section>
+    <section className={styles.orders} aria-label="Commandes actives">
+      <strong>COMMANDES</strong>
+      {status.orders.length ? <ul>{status.orders.map(order => <li key={order.id}>{order.label}</li>)}</ul> : <p>Aucune commande active.</p>}
+    </section>
+    </div>
     <p className={styles.hint}>ZQSD ou flèches : BOUGER · ESPACE : BONDIR · E : PRENDRE / POSER · Maintenir C : DÉCOUPER</p>
   </main>, document.body);
 }

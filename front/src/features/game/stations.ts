@@ -10,11 +10,11 @@ export const stations: readonly KitchenStation[] = [
   { id: 'meat', kind: 'source', item: 'meat', texture: 'meat', label: 'VIANDE CRUE', x: 528, y: 300 },
   { id: 'grill', kind: 'surface', accepts: ['meat'], preparation: 'cook', texture: 'worktop', label: 'CUIRE', x: 672, y: 300 },
   { id: 'plates', kind: 'source', item: 'plate', texture: 'plates', label: 'ASSIETTES', x: 960, y: 300 },
-  { id: 'assembly', kind: 'surface', accepts: ['plate'], texture: 'worktop', label: 'ASSEMBLER', x: 960, y: 612 },
+  { id: 'assembly', kind: 'surface', accepts: ['plate'], assembly: true, texture: 'worktop', label: 'ASSEMBLER', x: 960, y: 612 },
   { id: 'delivery', kind: 'delivery', texture: 'delivery', label: 'SERVIR', x: 1294, y: 478 },
   { id: 'trash', kind: 'trash', texture: 'trash', label: 'POUBELLE', x: 96, y: 612 },
-  { id: 'counter-left', kind: 'surface', accepts: allItems, texture: 'worktop', label: '', x: 384, y: 612 },
-  { id: 'counter-right', kind: 'surface', accepts: allItems, texture: 'worktop', label: '', x: 672, y: 612 },
+  { id: 'counter-left', kind: 'surface', accepts: allItems, assembly: true, texture: 'worktop', label: '', x: 384, y: 612 },
+  { id: 'counter-right', kind: 'surface', accepts: allItems, assembly: true, texture: 'worktop', label: '', x: 672, y: 612 },
 ];
 
 /** Distance from the player's feet to a counter edge; never interact through another counter. */

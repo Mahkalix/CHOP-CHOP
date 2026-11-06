@@ -3,15 +3,25 @@ import Phaser from 'phaser';
 import { stations, closestStation } from './stations';
 import { createInventory, interact, describeItem, type Item, type Inventory } from './interactions';
 
+import { attemptDelivery, type ActiveOrder } from './delivery';
+import { identifyRecipe, recipes } from './recipes';
 import { advancePreparation, getPreparationProgress, type PreparationProgress } from './preparation';
 
-const textureOf = (item: Item) => 'item-' + (item.kind === 'tomato' ? (item.state === 'chopped' ? 'chopped' : 'whole') : item.kind === 'meat' && item.state !== 'raw' ? item.state : item.kind);
+const textureOf = (item: Item) => {
+  if (item.kind === 'plate') {
+    const recipe = identifyRecipe(item.ingredients);
+    return recipe ? `item-dish-${recipe.id}` : 'item-plate';
+  }
+  if (item.kind === 'tomato') return 'item-' + (item.state === 'chopped' ? 'chopped' : 'whole');
+  return 'item-' + (item.state === 'raw' ? 'meat' : item.state);
+};
 
-export type InteractionStatus = { carried: string | null; target: string | null; message: string; preparation: PreparationProgress | null };
+export type InteractionStatus = { carried: string | null; target: string | null; message: string; preparation: PreparationProgress | null; orders: readonly { id: string; label: string }[] };
 
 const chefs = ['Miso', 'Pipa', 'Basile', 'Alba', 'Nori', 'Gaspard'];
 
 export class KitchenScene extends Phaser.Scene {
+  private orders: readonly ActiveOrder[] = [];
   private inventory: Inventory = createInventory();
   private interactionKey!: Phaser.Input.Keyboard.Key;
   private targetId: string | null = null;
@@ -39,7 +49,7 @@ export class KitchenScene extends Phaser.Scene {
     for (const key of new Set(stations.map(station => station.texture))) {
       this.load.image(key, `/kitchen/${key}.png`);
     }
-    for (const name of ['whole', 'chopped', 'meat', 'cooked', 'burned', 'plate']) {
+    for (const name of ['whole', 'chopped', 'meat', 'cooked', 'burned', 'plate', 'dish-tomato', 'dish-meat', 'dish-mixed']) {
       this.load.svg('item-' + name, '/kitchen/items/' + name + '.svg');
     }
     this.load.svg('pan', '/kitchen/items/pan.svg');
@@ -50,6 +60,7 @@ export class KitchenScene extends Phaser.Scene {
 
   create() {
     this.inventory = createInventory();
+    this.orders = [];
     this.lastStatus = '';
     this.lastProgressAt = 0;
     this.dashUntil = 0;
@@ -98,7 +109,10 @@ export class KitchenScene extends Phaser.Scene {
     this.choppingCloud = this.add.graphics().setDepth(15);
     this.progressBars = this.add.graphics().setDepth(16);
     this.carriedItem = this.add.image(0, 0, 'item-whole').setScale(.72).setVisible(false).setDepth(20);
+    this.game.events.on('kitchen-orders', this.receiveOrders, this);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.game.events.off('kitchen-orders', this.receiveOrders, this));
     this.publishStatus(null, 'Approche-toi d’un poste puis appuie sur E.');
+    this.game.events.emit('kitchen-ready', { now: this.time.now });
   }
 
   update(time: number, delta: number) {
@@ -190,10 +204,25 @@ export class KitchenScene extends Phaser.Scene {
     const feet = (this.player.body as Phaser.Physics.Arcade.Body).center;
     const target = closestStation(feet.x, feet.y);
     if (!target) { this.publishStatus(null, 'Tu es trop loin d’un poste.'); return; }
+    if (target.kind === 'delivery') {
+      const result = attemptDelivery(this.inventory, this.orders, this.time.now);
+      this.inventory = result.inventory;
+      this.orders = result.orders;
+      this.drawItems();
+      this.publishStatus(target, result.message);
+      if (result.event) this.game.events.emit('kitchen-delivery', result.event);
+      return;
+    }
     const result = interact(this.inventory, target);
     this.inventory = result.inventory;
     this.drawItems();
     this.publishStatus(target, result.message);
+  }
+
+  private receiveOrders(orders: readonly ActiveOrder[]) {
+    this.orders = orders.map(order => ({ ...order }));
+    const feet = (this.player.body as Phaser.Physics.Arcade.Body).center;
+    this.publishStatus(closestStation(feet.x, feet.y));
   }
 
   private publishStatus(target: (typeof stations)[number] | null, message = this.feedback) {
@@ -203,6 +232,8 @@ export class KitchenScene extends Phaser.Scene {
       carried: this.inventory.carried ? describeItem(this.inventory.carried) : null,
       target: target ? target.label || 'PLAN DE TRAVAIL' : null,
       message,
+      orders: this.orders.filter(order => order.createdAt <= this.time.now && this.time.now < order.expiresAt)
+        .map(order => ({ id: order.id, label: recipes.find(recipe => recipe.id === order.recipeId)!.label })),
       preparation: progress ? { ...progress, percent: Math.round(progress.percent) } : null,
     } satisfies InteractionStatus;
     const serialized = JSON.stringify(status);
