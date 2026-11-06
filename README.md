@@ -72,3 +72,10 @@ Scores are computed client-side, so the API applies plausibility bounds:
 
 Set `DATABASE_URL`, `PORT` and `CORS_ORIGIN` (the front's URL) as environment variables on
 the host, then run `pnpm --filter @chopchop/api start`.
+
+## Front previews
+
+The React/Vite front is connected to Vercel through its native GitHub integration.
+Front PRs receive deployment checks and preview links from the Vercel bot.
+See [Vercel setup and verification](docs/vercel.md) for monorepo settings,
+changed-file filtering and access to protected previews.
