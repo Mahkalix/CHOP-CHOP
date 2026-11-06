@@ -30,6 +30,7 @@ export class KitchenScene extends Phaser.Scene {
   private lastStatus = '';
   private lastProgressAt = 0;
   private progressBars!: Phaser.GameObjects.Graphics;
+  private burningFlames!: Phaser.GameObjects.Graphics;
   private choppingCloud!: Phaser.GameObjects.Graphics;
   private knife!: Phaser.GameObjects.Image;
   private cutKey!: Phaser.Input.Keyboard.Key;
@@ -108,6 +109,7 @@ export class KitchenScene extends Phaser.Scene {
     this.restKnife();
     this.choppingCloud = this.add.graphics().setDepth(15);
     this.progressBars = this.add.graphics().setDepth(16);
+    this.burningFlames = this.add.graphics().setDepth(14);
     this.carriedItem = this.add.image(0, 0, 'item-whole').setScale(.72).setVisible(false).setDepth(20);
     this.game.events.on('kitchen-orders', this.receiveOrders, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.game.events.off('kitchen-orders', this.receiveOrders, this));
@@ -156,6 +158,7 @@ export class KitchenScene extends Phaser.Scene {
       this.animateChop(target.x + 72, target.y + 68, tomato.cutMs / 270);
     }
     this.drawProgress();
+    this.drawBurningFlames(time);
     if (result.messages.length) {
       this.drawItems();
       this.publishStatus(target, result.messages.join(' '));
@@ -173,6 +176,29 @@ export class KitchenScene extends Phaser.Scene {
       const x = station.x + 36, y = station.y + 100;
       this.progressBars.fillStyle(0x39312b).fillRoundedRect(x, y, 72, 10, 3)
         .fillStyle(0xffcf68).fillRect(x + 2, y + 2, 68 * progress.percent / 100, 6);
+    }
+  }
+
+  private drawBurningFlames(time: number) {
+    this.burningFlames.clear();
+    for (const station of stations) {
+      const item = this.inventory.surfaces[station.id];
+      if (station.kind !== 'surface' || station.preparation !== 'cook'
+        || item?.kind !== 'meat' || item.state !== 'cooked') continue;
+      const danger = 1 - getPreparationProgress(item, station)!.percent / 100;
+      for (let index = 0; index < 3; index++) {
+        const beat = time / 170 + index * 1.8;
+        const x = station.x + 54 + index * 18;
+        const y = station.y + 80;
+        const sway = Math.sin(beat) * 3;
+        const height = 13 + danger * 8 + Math.sin(beat + 1) * 3;
+        const width = 5 + danger * 2;
+        this.burningFlames.fillStyle(0xff7025, .9).beginPath()
+          .moveTo(x - width, y).lineTo(x - width, y - 6)
+          .lineTo(x - 3, y - height * .6).lineTo(x + sway, y - height)
+          .lineTo(x + width, y - 6).lineTo(x + width, y).closePath().fillPath()
+          .fillStyle(0xffe28a).fillTriangle(x - width * .55, y, x + sway * .5, y - height * .65, x + width * .55, y);
+      }
     }
   }
 
