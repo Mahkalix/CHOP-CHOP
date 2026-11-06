@@ -25,3 +25,6 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# Vercel local project link and downloaded environment
+.vercel/
