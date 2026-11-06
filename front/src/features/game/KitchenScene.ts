@@ -272,12 +272,13 @@ export class KitchenScene extends Phaser.Scene {
     for (const station of stations) {
       const item = this.inventory.surfaces[station.id];
       const sprite = this.placedItems.get(station.id);
-      if (item && sprite) sprite.setTexture(textureOf(item)).setVisible(true);
-      else if (item) this.placedItems.set(station.id, this.add.image(station.x + 72, station.y + 68, textureOf(item)).setScale(.85).setDepth(10));
-      else sprite?.setVisible(false);
+      if (!item) { sprite?.setVisible(false); continue; }
+      const image = sprite ?? this.add.image(station.x + 72, station.y + 68, textureOf(item)).setDepth(10);
+      image.setTexture(textureOf(item)).setScale(item.kind === 'plate' ? 1.5 : .85).setVisible(true);
+      this.placedItems.set(station.id, image);
     }
     const held = this.inventory.carried;
     this.carriedItem.setVisible(Boolean(held));
-    if (held) this.carriedItem.setTexture(textureOf(held));
+    if (held) this.carriedItem.setTexture(textureOf(held)).setScale(held.kind === 'plate' ? 1.15 : .72);
   }
 }
