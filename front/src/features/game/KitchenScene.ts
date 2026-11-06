@@ -37,6 +37,7 @@ export class KitchenScene extends Phaser.Scene {
     for (const name of ['whole', 'chopped', 'meat', 'plate']) {
       this.load.svg('item-' + name, '/kitchen/items/' + name + '.svg');
     }
+    this.load.svg('pan', '/kitchen/items/pan.svg');
     this.load.svg('knife', '/kitchen/items/knife.svg');
     const selected = sessionStorage.getItem('chef') ?? 'Miso';
     this.load.image('chef', `/menu/${chefs.includes(selected) ? selected : 'Miso'}.png`);
@@ -53,6 +54,7 @@ export class KitchenScene extends Phaser.Scene {
     for (const { id, texture, label, x, y } of stations) {
       const sprite = obstacles.create(x + 72, y + 72, texture).setDisplaySize(144, 144).refreshBody();
       this.stationSprites.set(id, sprite);
+      if (id === 'grill') this.add.image(x + 72, y + 68, 'pan').setOrigin(42 / 112, 46 / 80);
       if (label) {
         this.add.text(x + 72, y + 148, label, {
           fontFamily: 'Arial', fontSize: '18px', fontStyle: 'bold', color: '#000000',
