@@ -1,0 +1,37 @@
+.ranking {
+  margin-block: 12px 8px;
+  select, button { font: inherit; padding: 6px 12px; border: 2px solid #15100d; background: #f7f1e6; color: #15100d; }
+  button { cursor: pointer; }
+  caption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  table th[scope='row'] { font-size: 20px; font-weight: 600; text-align: left; overflow-wrap: anywhere; }
+  table td { height: 52px; }
+  table th { height: 32px; }
+}
+.tableWrapper { overflow-x: auto; }
+
+.upcoming {
+  box-sizing: border-box;
+  width: min(100%, 820px);
+  margin: 48px auto 32px;
+  padding: 40px 28px;
+  border: 2px solid #342019;
+  background: #f7f1e6;
+  box-shadow: 5px 5px #cdbca4;
+  text-align: center;
+
+  img { display: block; margin: 0 auto 16px; }
+  h2 { margin: 0; font: 700 36px/1.15 'Pixelify Sans', monospace; color: #922f1f; }
+  p { max-width: 44ch; margin: 12px auto 0; font-size: 20px; line-height: 1.45; }
+}
+
+.ranking .title.title { margin: 16px 0; font: 600 18px/20px Inter, sans-serif; }
+.ranking .podium {
+  display: flex; flex-wrap: wrap; gap: 16px; width: min(100%, 1040px); margin: 0 auto 20px;
+  section { flex: 1 1 180px; min-width: 0; display: grid; align-content: center; gap: 8px; min-height: 130px; padding: 16px; border: 1px solid black; background: #e8dbc4; }
+  section.winner { border: 3px solid #922f1f; }
+  section h3 { font: 600 16px Inter, sans-serif; }
+  strong { font-size: 24px; overflow-wrap: anywhere; }
+  p { margin: 0; font: bold 36px 'Pixelify Sans', monospace; }
+}
+// A public leaderboard cannot identify the current player: never highlight an arbitrary row.
+.ranking tbody tr:nth-child(3) { color: inherit; background: transparent; }

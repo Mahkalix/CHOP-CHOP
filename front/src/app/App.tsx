@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { AuthProvider } from '../features/auth/AuthProvider';
 import { PlayerGate } from '../features/auth/PlayerGate';
+import { Ranking } from '../features/leaderboard/Ranking';
 import { HomePage } from '../features/home/HomePage';
 import styles from '../features/home/HomePage.module.scss';
 
@@ -73,23 +74,5 @@ function Rules() {
       <section><h3>LES 3 RECETTES</h3>Tomate : assiette + tomate découpée<br/>Viande : assiette + viande cuite<br/>Mixte : assiette + tomate découpée + viande cuite</section>
       <section><h3>À RETENIR</h3>Un seul objet porté à la fois. Pose-le avant d’en prendre un autre.<br/>Viande : pose-la sur le feu, attends 8 s, puis récupère-la.<br/>Après 6 s de plus, elle brûle : direction la poubelle.</section>
     </div>
-  </>;
-}
-
-// Example scores from the Figma screen, until the scores API is connected.
-const scores = [['Camille', 680], ['Sam', 540], ['Alex · Toi', 420], ['Lou', 360], ['Noa', 240]] as const;
-
-function Ranking() {
-  return <>
-    <h2>TOP 5 · LES AS DU FOURNEAU</h2>
-    <div className={styles.row}>{([1, 0, 2] as const).map(index =>
-      <section key={index}><h3>{['01 / MEILLEUR SCORE', '02 / PODIUM', '03 / TA POSITION'][index]}</h3><strong>{scores[index][0]}</strong><p>{scores[index][1]} pts</p></section>
-    )}</div>
-    <table><thead><tr><th>RANG</th><th>JOUEUR</th><th>POINTS</th></tr></thead>
-      <tbody>{scores.map(([player, points], i) =>
-        <tr key={player}><td>0{i + 1}</td><td>{player}</td><td>{points}</td></tr>
-      )}</tbody>
-    </table>
-    <p>Ton meilleur score est conservé. À toi de grimper au classement !</p>
   </>;
 }
