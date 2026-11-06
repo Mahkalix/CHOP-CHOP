@@ -1,0 +1,4 @@
+.kitchen { position: relative; width: 1440px; height: 900px; font-family: Inter, sans-serif; }
+.exit, .hint { position: absolute; background: #f7f1e6; color: black; padding: 10px 20px; font-weight: 600; }
+.exit { top: 16px; right: 16px; border: 2px solid black; }
+.hint { bottom: 16px; left: 50%; transform: translateX(-50%); margin: 0; }
