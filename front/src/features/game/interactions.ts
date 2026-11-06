@@ -1,6 +1,6 @@
 /** Local kitchen inventory. Recipe preparation and assembly are separate features. */
 export type ItemKind = 'tomato' | 'meat' | 'plate';
-export type Item = { readonly id: number; readonly kind: ItemKind };
+export type Item = { readonly id: number; readonly kind: ItemKind; readonly cutMs?: number };
 export type Station =
   | { readonly id: string; readonly kind: 'source'; readonly item: ItemKind }
   | { readonly id: string; readonly kind: 'surface'; readonly accepts: readonly ItemKind[] }
@@ -18,6 +18,12 @@ export const itemLabels: Record<ItemKind, string> = {
   tomato: 'Tomate', meat: 'Viande crue', plate: 'Assiette',
 };
 
+export const chopDuration = 3000;
+
+export function describeItem(item: Item) {
+  return item.kind === 'tomato' && item.cutMs === chopDuration ? 'Tomate découpée' : itemLabels[item.kind];
+}
+
 export function createInventory(): Inventory {
   return { carried: null, surfaces: {}, nextItemId: 1, discarded: 0 };
 }
@@ -31,7 +37,7 @@ export function interact(inventory: Inventory, station: Station): InteractionRes
     const item: Item = { id: inventory.nextItemId, kind: station.item };
     return {
       inventory: { ...inventory, carried: item, nextItemId: inventory.nextItemId + 1 },
-      message: `${itemLabels[item.kind]} récupérée.`,
+      message: `${describeItem(item)} récupérée.`,
     };
   }
   if (station.kind === 'trash') {
@@ -45,12 +51,12 @@ export function interact(inventory: Inventory, station: Station): InteractionRes
     if (!station.accepts.includes(carried.kind)) return unchanged('Cet objet ne peut pas être posé sur ce poste.');
     return {
       inventory: { ...inventory, carried: null, surfaces: { ...inventory.surfaces, [station.id]: carried } },
-      message: `${itemLabels[carried.kind]} posée.`,
+      message: `${describeItem(carried)} posée.`,
     };
   }
   if (!placed) return unchanged('Ce poste est vide.');
   return {
     inventory: { ...inventory, carried: placed, surfaces: { ...inventory.surfaces, [station.id]: null } },
-    message: `${itemLabels[placed.kind]} récupérée.`,
+    message: `${describeItem(placed)} récupérée.`,
   };
 }

@@ -1,7 +1,10 @@
 import Phaser from 'phaser';
 
 import { stations, closestStation } from './stations';
-import { createInventory, interact, itemLabels, type ItemKind, type Inventory } from './interactions';
+import { createInventory, interact, chopDuration, describeItem, type Item, type Inventory } from './interactions';
+
+
+const textureOf = (item: Item) => 'item-' + (item.kind === 'tomato' ? (item.cutMs === chopDuration ? 'chopped' : 'whole') : item.kind);
 
 export type InteractionStatus = { carried: string | null; target: string | null; message: string };
 
@@ -11,8 +14,10 @@ export class KitchenScene extends Phaser.Scene {
   private inventory: Inventory = createInventory();
   private interactionKey!: Phaser.Input.Keyboard.Key;
   private targetId: string | null = null;
-  private placedItems!: Phaser.GameObjects.Graphics;
-  private carriedItem!: Phaser.GameObjects.Graphics;
+  private placedItems = new Map<string, Phaser.GameObjects.Image>();
+  private choppingCloud!: Phaser.GameObjects.Graphics;
+  private cutKey!: Phaser.Input.Keyboard.Key;
+  private carriedItem!: Phaser.GameObjects.Image;
   private stationSprites = new Map<string, Phaser.GameObjects.Sprite>();
   private portrait!: Phaser.GameObjects.Image;
   private readonly facing = new Phaser.Math.Vector2(0, 1);
@@ -27,6 +32,9 @@ export class KitchenScene extends Phaser.Scene {
     this.load.image('floor', '/kitchen/floor.png');
     for (const key of new Set(stations.map(station => station.texture))) {
       this.load.image(key, `/kitchen/${key}.png`);
+    }
+    for (const name of ['whole', 'chopped', 'meat', 'plate']) {
+      this.load.svg('item-' + name, '/kitchen/items/' + name + '.svg');
     }
     const selected = sessionStorage.getItem('chef') ?? 'Miso';
     this.load.image('chef', `/menu/${chefs.includes(selected) ? selected : 'Miso'}.png`);
@@ -72,12 +80,14 @@ export class KitchenScene extends Phaser.Scene {
     this.interactionKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     this.interactionKey.on('down', this.useClosestStation, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.interactionKey.off('down', this.useClosestStation, this));
-    this.placedItems = this.add.graphics().setDepth(10);
-    this.carriedItem = this.add.graphics().setDepth(20);
+    this.placedItems.clear();
+    this.cutKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.C);
+    this.choppingCloud = this.add.graphics().setDepth(15);
+    this.carriedItem = this.add.image(0, 0, 'item-whole').setScale(.72).setVisible(false).setDepth(20);
     this.publishStatus(null, 'Approche-toi d’un poste puis appuie sur E.');
   }
 
-  update(time: number) {
+  update(time: number, delta: number) {
     const horizontal = Number(this.arrows.right.isDown || this.letters.D.isDown)
       - Number(this.arrows.left.isDown || this.letters.Q.isDown);
     const vertical = Number(this.arrows.down.isDown || this.letters.S.isDown)
@@ -94,7 +104,7 @@ export class KitchenScene extends Phaser.Scene {
     const lift = 16 * Math.sin(Math.PI * remaining / KitchenScene.dashDuration);
     this.portrait.setPosition(this.player.x, this.player.y - lift);
     if (velocity.x) this.portrait.setFlipX(velocity.x < 0);
-    this.carriedItem.setPosition(this.player.x + (this.portrait.flipX ? -44 : 44), this.player.y - lift - 12);
+    this.carriedItem.setPosition(this.player.x + (this.portrait.flipX ? -26 : 26), this.player.y - lift + 26);
     const feet = (this.player.body as Phaser.Physics.Arcade.Body).center;
     const target = closestStation(feet.x, feet.y);
     if ((target?.id ?? null) !== this.targetId) {
@@ -103,6 +113,37 @@ export class KitchenScene extends Phaser.Scene {
       this.stationSprites.get(this.targetId ?? '')?.setTint(0xffe293);
       this.publishStatus(target, target ? 'E : prendre, poser ou utiliser ce poste.' : 'Approche-toi d’un poste pour interagir.');
     }
+    this.choppingCloud.clear();
+    const tomato = target && this.inventory.surfaces[target.id];
+    if (target?.id === 'chopping' && tomato?.kind === 'tomato' && (tomato.cutMs ?? 0) < chopDuration) {
+      let elapsed = tomato.cutMs ?? 0;
+      const x = target.x + 72, y = target.y + 68;
+      if (this.cutKey.isDown && !this.inventory.carried) {
+        elapsed = Math.min(chopDuration, elapsed + delta);
+        this.inventory = { ...this.inventory, surfaces: { ...this.inventory.surfaces, [target.id]: { ...tomato, cutMs: elapsed } } };
+        if (elapsed === chopDuration) {
+          this.drawItems();
+          this.publishStatus(target, 'Tomate découpée.');
+        } else this.animateChop(x, y, elapsed / 270);
+      }
+      if (elapsed > 0 && elapsed < chopDuration) {
+        this.choppingCloud.fillStyle(0x39312b).fillRoundedRect(x - 22, y + 22, 44, 6, 2)
+          .fillStyle(0xffcf68).fillRect(x - 20, y + 24, 40 * elapsed / chopDuration, 2);
+      }
+    }
+  }
+
+  private animateChop(x: number, y: number, beat: number) {
+      for (let i = 0; i < 6; i++) {
+        const age = (beat + i / 6) % 1;
+        const side = i % 2 ? 1 : -1;
+        this.choppingCloud.fillStyle(0xfff2d8, (1 - age) * .86)
+          .fillCircle(x + side * (6 + age * (19 + i)), y - age * 22, 4 + age * 6);
+      }
+      const bladeY = y - 4 - Math.abs(Math.sin(Math.PI * beat)) * 19;
+      this.choppingCloud.fillStyle(0xc9dcde).fillRoundedRect(x - 1, bladeY - 7, 19, 9, 2)
+        .fillStyle(0x6b4731).fillRoundedRect(x + 16, bladeY - 7, 11, 4, 1);
+      this.portrait.y += 3 * Math.sin(2 * Math.PI * beat);
   }
 
   private useClosestStation() {
@@ -117,29 +158,22 @@ export class KitchenScene extends Phaser.Scene {
 
   private publishStatus(target: (typeof stations)[number] | null, message: string) {
     this.game.events.emit('kitchen-interaction', {
-      carried: this.inventory.carried ? itemLabels[this.inventory.carried.kind] : null,
+      carried: this.inventory.carried ? describeItem(this.inventory.carried) : null,
       target: target ? target.label || 'PLAN DE TRAVAIL' : null,
       message,
     } satisfies InteractionStatus);
   }
 
   private drawItems() {
-    this.placedItems.clear(); this.carriedItem.clear();
     for (const station of stations) {
       const item = this.inventory.surfaces[station.id];
-      if (item) this.drawItem(this.placedItems, item.kind, station.x + 72, station.y + 68);
+      const sprite = this.placedItems.get(station.id);
+      if (item && sprite) sprite.setTexture(textureOf(item)).setVisible(true);
+      else if (item) this.placedItems.set(station.id, this.add.image(station.x + 72, station.y + 68, textureOf(item)).setScale(.85).setDepth(10));
+      else sprite?.setVisible(false);
     }
-    if (this.inventory.carried) this.drawItem(this.carriedItem, this.inventory.carried.kind, 0, 0);
-  }
-
-  private drawItem(graphics: Phaser.GameObjects.Graphics, kind: ItemKind, x: number, y: number) {
-    graphics.lineStyle(3, 0x201710);
-    if (kind === 'meat') {
-      graphics.fillStyle(0xcc826c).fillRoundedRect(x - 22, y - 14, 44, 28, 8).strokeRoundedRect(x - 22, y - 14, 44, 28, 8);
-    } else {
-      const radius = kind === 'plate' ? 24 : 18;
-      graphics.fillStyle(kind === 'plate' ? 0xffffff : 0xd84731).fillCircle(x, y, radius).strokeCircle(x, y, radius);
-      if (kind === 'tomato') graphics.fillStyle(0x387342).fillRect(x - 3, y - 23, 6, 10);
-    }
+    const held = this.inventory.carried;
+    this.carriedItem.setVisible(Boolean(held));
+    if (held) this.carriedItem.setTexture(textureOf(held));
   }
 }

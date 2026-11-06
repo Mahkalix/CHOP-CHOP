@@ -11,7 +11,7 @@ export const stations: readonly KitchenStation[] = [
   { id: 'grill', kind: 'surface', accepts: ['meat'], texture: 'grill', label: 'CUIRE', x: 672, y: 300 },
   { id: 'plates', kind: 'source', item: 'plate', texture: 'plates', label: 'ASSIETTES', x: 960, y: 300 },
   { id: 'counter-top', kind: 'surface', accepts: allItems, texture: 'worktop', label: '', x: 1104, y: 300 },
-  { id: 'assembly', kind: 'surface', accepts: ['plate'], texture: 'assembly', label: 'ASSEMBLER', x: 960, y: 580 },
+  { id: 'assembly', kind: 'surface', accepts: ['plate'], texture: 'worktop', label: 'ASSEMBLER', x: 960, y: 580 },
   { id: 'delivery', kind: 'delivery', texture: 'delivery', label: 'SERVIR', x: 1294, y: 478 },
   { id: 'trash', kind: 'trash', texture: 'trash', label: 'POUBELLE', x: 96, y: 580 },
   { id: 'counter-left', kind: 'surface', accepts: allItems, texture: 'worktop', label: '', x: 240, y: 660 },

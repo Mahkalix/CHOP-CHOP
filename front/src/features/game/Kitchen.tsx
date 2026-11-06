@@ -41,6 +41,6 @@ export default function Kitchen() {
       <p>{status.target ? `POSTE : ${status.target}` : 'Approche-toi d’un poste.'}</p>
       <p role="status">{status.message}</p>
     </section>
-    <p className={styles.hint}>ZQSD ou flèches : BOUGER · ESPACE : BONDIR · E : PRENDRE / POSER</p>
+    <p className={styles.hint}>ZQSD ou flèches : BOUGER · ESPACE : BONDIR · E : PRENDRE / POSER · Maintenir C : DÉCOUPER</p>
   </main>, document.body);
 }
