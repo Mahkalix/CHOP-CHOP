@@ -16,6 +16,7 @@ export class KitchenScene extends Phaser.Scene {
   private targetId: string | null = null;
   private placedItems = new Map<string, Phaser.GameObjects.Image>();
   private choppingCloud!: Phaser.GameObjects.Graphics;
+  private knife!: Phaser.GameObjects.Image;
   private cutKey!: Phaser.Input.Keyboard.Key;
   private carriedItem!: Phaser.GameObjects.Image;
   private stationSprites = new Map<string, Phaser.GameObjects.Sprite>();
@@ -36,6 +37,7 @@ export class KitchenScene extends Phaser.Scene {
     for (const name of ['whole', 'chopped', 'meat', 'plate']) {
       this.load.svg('item-' + name, '/kitchen/items/' + name + '.svg');
     }
+    this.load.svg('knife', '/kitchen/items/knife.svg');
     const selected = sessionStorage.getItem('chef') ?? 'Miso';
     this.load.image('chef', `/menu/${chefs.includes(selected) ? selected : 'Miso'}.png`);
   }
@@ -82,6 +84,8 @@ export class KitchenScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.interactionKey.off('down', this.useClosestStation, this));
     this.placedItems.clear();
     this.cutKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.C);
+    this.knife = this.add.image(0, 0, 'knife').setOrigin(.13, .45).setDepth(21);
+    this.restKnife();
     this.choppingCloud = this.add.graphics().setDepth(15);
     this.carriedItem = this.add.image(0, 0, 'item-whole').setScale(.72).setVisible(false).setDepth(20);
     this.publishStatus(null, 'Approche-toi d’un poste puis appuie sur E.');
@@ -114,6 +118,7 @@ export class KitchenScene extends Phaser.Scene {
       this.publishStatus(target, target ? 'E : prendre, poser ou utiliser ce poste.' : 'Approche-toi d’un poste pour interagir.');
     }
     this.choppingCloud.clear();
+    this.restKnife();
     const tomato = target && this.inventory.surfaces[target.id];
     if (target?.id === 'chopping' && tomato?.kind === 'tomato' && (tomato.cutMs ?? 0) < chopDuration) {
       let elapsed = tomato.cutMs ?? 0;
@@ -140,10 +145,21 @@ export class KitchenScene extends Phaser.Scene {
         this.choppingCloud.fillStyle(0xfff2d8, (1 - age) * .86)
           .fillCircle(x + side * (6 + age * (19 + i)), y - age * 22, 4 + age * 6);
       }
-      const bladeY = y - 4 - Math.abs(Math.sin(Math.PI * beat)) * 19;
-      this.choppingCloud.fillStyle(0xc9dcde).fillRoundedRect(x - 1, bladeY - 7, 19, 9, 2)
-        .fillStyle(0x6b4731).fillRoundedRect(x + 16, bladeY - 7, 11, 4, 1);
-      this.portrait.y += 3 * Math.sin(2 * Math.PI * beat);
+      // Pose the portrait at the counter so the handle stays in the chef's hand
+      // and the tip reaches the tomato. The collision body stays on the floor.
+      const side = this.player.x < x ? -1 : 1;
+      const swing = Math.abs(Math.sin(Math.PI * beat));
+      const gripX = x + side * 37;
+      const gripY = y + 3 - swing * 8;
+      this.portrait.setFlipX(side > 0).setPosition(gripX + side * 26, gripY - 26);
+      this.knife.setPosition(gripX, gripY).setRotation(
+        (side > 0 ? Math.PI : 0) + side * swing * .55
+      );
+  }
+
+  private restKnife() {
+    const counter = this.stationSprites.get('chopping')!;
+    this.knife.setPosition(counter.x - 44, counter.y - 27).setAngle(-12);
   }
 
   private useClosestStation() {

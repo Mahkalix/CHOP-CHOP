@@ -6,7 +6,7 @@ const allItems = ['tomato', 'meat', 'plate'] as const;
 /** Unique ids keep individual worktops and their contents distinct. */
 export const stations: readonly KitchenStation[] = [
   { id: 'tomatoes', kind: 'source', item: 'tomato', texture: 'tomato', label: 'TOMATES', x: 240, y: 300 },
-  { id: 'chopping', kind: 'surface', accepts: ['tomato'], texture: 'chop', label: 'DÉCOUPER', x: 384, y: 300 },
+  { id: 'chopping', kind: 'surface', accepts: ['tomato'], texture: 'worktop', label: 'DÉCOUPER', x: 384, y: 300 },
   { id: 'meat', kind: 'source', item: 'meat', texture: 'meat', label: 'VIANDE CRUE', x: 528, y: 300 },
   { id: 'grill', kind: 'surface', accepts: ['meat'], texture: 'grill', label: 'CUIRE', x: 672, y: 300 },
   { id: 'plates', kind: 'source', item: 'plate', texture: 'plates', label: 'ASSIETTES', x: 960, y: 300 },
