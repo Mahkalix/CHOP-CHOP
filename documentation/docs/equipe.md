@@ -17,7 +17,7 @@ Notre défi : construire en **deux jours** un petit jeu web de cuisine en solo, 
 | **Maxence** | Développeuse front et responsable UX : interface et expérience utilisateur. |
 | **Valérie** | Base de données et back : structure des données et développement back-end. |
 
-Ces rôles reprennent le contexte projet du 6 novembre 2026. Ils servent de repères pour coordonner le travail ; ils n’attribuent pas à une seule personne l’ensemble des contributions d’un domaine.
+Ces rôles ont été communiqués par l’équipe. Ils servent de repères pour coordonner le travail ; ils n’attribuent pas à une seule personne l’ensemble des contributions d’un domaine.
 
 ## Notre façon de travailler
 

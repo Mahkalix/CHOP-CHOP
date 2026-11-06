@@ -2,7 +2,7 @@
 title: Conventions et règles de travail
 ---
 
-Les règles ci-dessous reprennent le [contexte projet du 6 novembre 2026](./references.md). Les compléments de coordination proposés sont identifiés à la fin de la page.
+Ces conventions accompagnent `CONTEXT.md`, le contexte de travail à jour à la racine du dépôt. Les compléments de coordination proposés sont identifiés à la fin de la page.
 
 ## Un code simple et propre
 
@@ -12,11 +12,15 @@ Les règles ci-dessous reprennent le [contexte projet du 6 novembre 2026](./refe
 - Retirer les `console.log` de débogage avant la revue.
 - Centraliser les types et schémas échangés entre le front et le back dans `packages/shared`, importé avec `@chopchop/shared`.
 
-Le front utilise React, TypeScript et des modules SCSS. Le back utilise Fastify, Drizzle et Zod. Les limites de niveaux et les contrats de données partagés doivent être réutilisés côté front plutôt que recopiés.
+Le front installé utilise React 19, TypeScript 5, Vite 7 et des modules SCSS. Le back utilise Fastify 5, Drizzle, Zod, PostgreSQL via `pg` et TypeScript 7. Phaser et le SDK Supabase côté front sont prévus, mais pas encore installés. Les limites de niveaux et les contrats de données partagés doivent être réutilisés côté front plutôt que recopiés.
+
+Le code, ses identifiants et ses commentaires techniques sont écrits en anglais. Les textes visibles dans l'interface du jeu sont en français. Conserver les contrats et données existants lors d'un changement de nom, ou coordonner leur migration.
 
 ## Branches et pull requests
 
 Une branche et une pull request correspondent à une fonctionnalité. Une revue est nécessaire avant la fusion dans `main`. Les commits, les pushs et les pull requests sont réalisés par les membres de l’équipe.
+
+Les noms des nouvelles branches sont entièrement en minuscules, avec les mots séparés par des tirets. Exemples : `feat/8-api-and-bdd` et `docs/30-contexte-projet`. Un ancien nom de branche qui ne suit pas cette convention reste historique.
 
 Les commits suivent le format `type: description` :
 
@@ -42,9 +46,9 @@ pnpm typecheck
 pnpm test
 ```
 
-Le contexte indique Node.js 22 ou supérieur et pnpm 11 pour ce monorepo. Les versions TypeScript du front et du back restent à harmoniser si elles posent problème.
+Le monorepo utilise Node.js 22 ou supérieur et pnpm 11. Les versions TypeScript du front et du back restent à harmoniser si elles posent problème.
 
-Le **site de documentation Docusaurus** présent dans ce dossier possède ses propres commandes :
+Le **site de documentation Docusaurus** dans `documentation/` utilise npm, son propre verrouillage des dépendances et TypeScript 6. Il ne fait pas partie des workspaces pnpm ni du workflow CI actuel. Vérifier ses changements avec :
 
 ```sh
 npm run typecheck
@@ -64,11 +68,11 @@ Le fichier `apps/api/.env` n’est jamais commité. Il est préparé à partir d
 
 ## Priorités de réalisation
 
-Le projet est prévu sur deux jours. La priorité est un niveau jouable de bout en bout avant la déclinaison des cinq niveaux. Le moteur du jeu doit encore être choisi entre Phaser et un Canvas 2D maison intégré au front React/Vite. Les noms des niveaux et certaines limites de score restent provisoires.
+Le projet est prévu sur deux jours. La priorité est une boucle jouable de bout en bout sur le niveau 1, avant les niveaux 2 et 3. React porte les menus et interfaces ; Phaser porte la cuisine et les interactions dans le front TypeScript/Vite. Les noms des niveaux et certaines limites de score restent provisoires.
 
 ## Compléments de coordination proposés
 
-Ces pratiques complètent le contexte et restent à valider ensemble :
+Ces pratiques complètent les conventions confirmées et restent à valider ensemble :
 
 - Décrire dans chaque pull request le besoin, les modifications et les vérifications réalisées.
 - Signaler les blocages et les changements de contrat front/back aux personnes concernées.
