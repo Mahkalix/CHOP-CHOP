@@ -4,7 +4,7 @@ A solo, desktop-only, Overcooked-like browser game: 5 levels and a per-level lea
 
 ## Stack
 
-- **Front:** Phaser 3 + TypeScript + Vite (`apps/game`, to be added)
+- **Front:** React 19 + TypeScript + Vite + Sass (`front`). Menus and navigation are React; the future kitchen scene will use Phaser inside the same app.
 - **Back:** Node.js + Fastify + Drizzle ORM, PostgreSQL hosted on Supabase (`apps/api`)
 - **Shared:** Zod schemas and types used by both sides (`packages/shared`, imported as `@chopchop/shared`)
 - pnpm monorepo, Node 22+
@@ -72,3 +72,15 @@ Scores are computed client-side, so the API applies plausibility bounds:
 
 Set `DATABASE_URL`, `PORT` and `CORS_ORIGIN` (the front's URL) as environment variables on
 the host, then run `pnpm --filter @chopchop/api start`.
+
+## Frontend
+
+```bash
+pnpm install
+pnpm dev:front
+pnpm build:front
+```
+
+The menu uses hash routes (`#accueil`, `#jouer`, `#regles`, `#classement`) so direct links and browser back/forward work on static hosting without rewrite rules. The play screen is an explicit integration placeholder; it does not create a game session. The leaderboard does not display invented scores and awaits API integration.
+
+Keep React for navigation, forms, rules, leaderboard and accessible HUD. Mount Phaser in the play screen for the scene, sprites, collisions and keyboard loop; create/destroy its instance with the screen lifecycle and load it only when playing. Exchange discrete events (start, score, pause, finish) instead of updating React on every frame. Phaser integration belongs to the game issues, starting with #11.
