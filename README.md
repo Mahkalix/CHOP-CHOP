@@ -2,6 +2,8 @@
 
 CHOP-CHOP est un jeu web de cuisine solo, jouable au clavier sur ordinateur. L'équipe prévoit **trois niveaux** et un classement par niveau. La priorité est de rendre le niveau 1 jouable de bout en bout, de la connexion au résultat classé.
 
+## Sites en ligne
+
 | | Site en ligne | Projet Vercel |
 | --- | --- | --- |
 | Front, prototype actuel | [Ouvrir le front](https://chop-chop-front.vercel.app/) | [Voir le projet Vercel](https://vercel.com/mahkalixs-projects/chop-chop-front) |
@@ -9,16 +11,36 @@ CHOP-CHOP est un jeu web de cuisine solo, jouable au clavier sur ordinateur. L'�
 
 La partie complète reste à intégrer au front.
 
-## Démarrer localement
+## En local
 
-Prérequis : **Node.js 22+** et **pnpm 11**. Depuis la racine du dépôt :
+Prérequis : **Node.js 22+** et **pnpm 11** pour le jeu. Les liens `localhost` fonctionnent pendant que les serveurs sont lancés.
+
+### Front
+
+Depuis la racine du dépôt :
 
 ```sh
 pnpm install
 pnpm dev:front
 ```
 
-Pour lancer aussi l'API, créer son fichier de configuration local à partir de [`apps/api/.env.example`](apps/api/.env.example), renseigner les valeurs demandées à l'équipe, puis lancer :
+Ouvrir le [front local](http://localhost:5173/) (port Vite par défaut).
+
+### Documentation Docusaurus
+
+Dans un autre terminal, depuis la racine du dépôt :
+
+```sh
+cd documentation
+npm ci
+npm start -- --port 3001
+```
+
+Ouvrir la [documentation locale](http://localhost:3001/). Le port 3001 laisse le port 3000 libre pour l'API.
+
+### API, si nécessaire
+
+Depuis la racine du dépôt, créer son fichier de configuration local à partir de [`apps/api/.env.example`](apps/api/.env.example), renseigner les valeurs demandées à l'équipe, puis lancer :
 
 ```sh
 cp apps/api/.env.example apps/api/.env
