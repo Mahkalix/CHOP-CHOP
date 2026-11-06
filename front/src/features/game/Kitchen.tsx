@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import Phaser from 'phaser';
 import { KitchenScene } from './KitchenScene';
 import styles from './Kitchen.module.scss';
@@ -8,8 +9,7 @@ export default function Kitchen() {
   useEffect(() => {
     const game = new Phaser.Game({
       type: Phaser.AUTO,
-      width: 1440,
-      height: 900,
+      scale: { mode: Phaser.Scale.RESIZE },
       parent: mount.current!,
       pixelArt: true,
       backgroundColor: '#e4d5bb',
@@ -18,9 +18,14 @@ export default function Kitchen() {
     });
     return () => game.destroy(true);
   }, []);
-  return <main className={styles.kitchen} aria-label="Cuisine du premier service">
-    <div ref={mount} />
+  return createPortal(<main className={styles.kitchen} aria-label="Cuisine du premier service">
+    <div className={styles.canvas} ref={mount} />
     <a className={styles.exit} href="#accueil">RETOUR À L’ACCUEIL</a>
-    <p className={styles.hint}>ZQSD ou flèches : BOUGER</p>
-  </main>;
+    {document.fullscreenEnabled && <button className={styles.fullscreen} onClick={event => {
+      const frame = event.currentTarget.closest('main');
+      if (document.fullscreenElement) void document.exitFullscreen();
+      else if (frame) void frame.requestFullscreen().catch(() => {});
+    }}>PLEIN ÉCRAN</button>}
+    <p className={styles.hint}>ZQSD ou flèches : BOUGER · ESPACE : BONDIR</p>
+  </main>, document.body);
 }

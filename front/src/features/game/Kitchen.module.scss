@@ -2,3 +2,9 @@
 .exit, .hint { position: absolute; background: #f7f1e6; color: black; padding: 10px 20px; font-weight: 600; }
 .exit { top: 16px; right: 16px; border: 2px solid black; }
 .hint { bottom: 16px; left: 50%; transform: translateX(-50%); margin: 0; }
+
+.kitchen { position: fixed; inset: 0; width: 100%; height: 100dvh; overflow: hidden; }
+.canvas { position: absolute; inset: 0; }
+.canvas canvas { display: block; }
+.fullscreen { position: absolute; top: 16px; left: 16px; padding: 10px; border: 2px solid black; background: #f7f1e6; cursor: pointer; }
+.hint { width: max-content; max-width: 95%; text-align: center; }
