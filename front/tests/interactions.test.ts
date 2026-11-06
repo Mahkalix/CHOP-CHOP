@@ -73,11 +73,12 @@ describe('station reach', () => {
   });
   it('finds a reachable tomato source from the front and nothing at a distance', () => {
     expect(closestStation(300, 470)?.id).toBe('tomatoes');
-    expect(closestStation(800, 800)).toBeNull();
+    expect(closestStation(880, 820)).toBeNull();
     expect(closestStation(300, 470, 20)).toBeNull();
   });
   it('selects the closest neighbouring counter', () => {
-    expect(closestStation(400, 650)?.id).toBe('counter-right');
-    expect(closestStation(300, 650)?.id).toBe('counter-left');
+    expect(closestStation(600, 605)).toBeNull();
+    expect(closestStation(740, 600)?.id).toBe('counter-right');
+    expect(closestStation(456, 600)?.id).toBe('counter-left');
   });
 });
