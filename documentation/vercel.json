@@ -4,5 +4,12 @@
   "installCommand": "npm ci",
   "buildCommand": "npm run build",
   "outputDirectory": "build",
-  "ignoreCommand": "exit 1"
+  "ignoreCommand": "exit 1",
+  "git": {
+    "deploymentEnabled": {
+      "codex/kitchen-interactions": false,
+      "codex/player-auth": false,
+      "codex/leaderboard-api": false
+    }
+  }
 }
