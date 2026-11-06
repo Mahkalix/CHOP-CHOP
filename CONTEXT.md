@@ -25,9 +25,7 @@ Le [Project](https://github.com/users/Mahkalix/projects/3) indique les statuts e
 2. Le code de la branche réellement utilisée, ses tests, migrations et contrats partagés, pour savoir ce qui fonctionne déjà.
 3. L'issue de la tâche et les PR qui modifient la même zone, pour le travail en cours.
 4. Le [Figma CHOP-CHOP](https://www.figma.com/design/5YyQNON3zicZCKuN1CkEH0/Chop-Chop?node-id=0-1&p=f&t=NicH7XWej9pK7hHY-0) pour les parcours et l'interface. La page MAQUETTE montre notamment Accueil, Chargement, début du service, Service en cours, Temps écoulé, Résultats, Comment jouer, Pause et abandon, et Classement. Vérifier les mesures et interactions dans Figma avant de les implémenter.
-5. Le site `documentation/`, notamment `documentation/docs/conventions.md`, `architecture.md`, `gameplay.md` et `references.md`. Il contient aussi des copies du cahier des charges, des cas d'utilisation et de l'ancien contexte dans `documentation/static/references/`. Le MCD/MLD transmis pour cette rédaction reste hors du dépôt. Ces documents contiennent des propositions et des variantes ; ils ne remplacent pas les décisions récentes ni le schéma implémenté.
-
-Plusieurs pages Docusaurus mentionnent encore cinq niveaux, un choix ouvert entre Phaser et Canvas, et une API non fusionnée. Ces trois indications sont dépassées par les décisions de l'équipe et le `main` local vérifié ici. Les mettre à jour avant de les utiliser comme consignes de développement.
+5. Le site `documentation/`, notamment `documentation/docs/conventions.md`, `architecture.md`, `gameplay.md` et `references.md`. Il contient des copies du cahier des charges et des cas d'utilisation dans `documentation/static/references/`. Le MCD/MLD transmis pour cette rédaction reste hors du dépôt. Ces documents contiennent des propositions et des variantes ; ils ne remplacent pas les décisions récentes ni le schéma implémenté.
 
 Si deux sources se contredisent, consigner l'écart dans la PR ou l'issue et demander une décision produit avant de modifier une règle métier. Ne pas transformer une proposition ancienne en comportement obligatoire.
 

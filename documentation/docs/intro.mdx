@@ -4,12 +4,12 @@ title: Présentation du projet
 
 # CHOP-CHOP
 
-Un jeu web de cuisine en 2D, jouable **en solo sur ordinateur au clavier**, avec **cinq niveaux prévus et un classement par niveau**. Préparez et livrez un maximum de plats avant la fin du temps imparti, puis comparez votre score à celui des autres joueurs du même niveau.
+Un jeu web de cuisine en 2D, jouable **en solo sur ordinateur au clavier**, avec **trois niveaux prévus et un classement par niveau**. Préparez et livrez un maximum de plats avant la fin du temps imparti, puis comparez votre score à celui des autres joueurs du même niveau.
 
-React 19 et Vite prennent en charge le front ; Fastify, Drizzle et PostgreSQL sur Supabase prennent en charge le back et les données. Supabase Auth gère la connexion. Le moteur de jeu reste à choisir entre Phaser et un Canvas 2D maison. La priorité est un premier niveau jouable avant la déclinaison des suivants.
+Le socle front installé est React 19, TypeScript, Vite 7 et SCSS ; le back présent utilise Fastify 5, Drizzle et PostgreSQL sur Supabase. L’équipe a retenu Supabase Auth pour la connexion, React pour les menus, les règles, le classement et les interfaces, et Phaser pour la cuisine, les personnages, les collisions, les animations et les interactions. Le SDK Supabase côté front et Phaser restent à intégrer. La priorité est un premier niveau jouable avant la déclinaison des suivants.
 
 :::info Statut du projet
-Cette documentation réunit le cadrage du **2 octobre 2026**, les **54 cas d’utilisation**, les maquettes et le **contexte projet du 6 novembre 2026**. Selon ce dernier, l’API est développée sur `feat/8-API-and-BDD` et n’est pas encore fusionnée dans `main`. Les règles de gameplay encore proposées restent à valider.
+Cette documentation réunit le cadrage initial, les **54 cas d’utilisation**, les maquettes et les décisions récentes de l’équipe. Le contexte de travail à jour est `CONTEXT.md` à la racine du dépôt. L’API est présente dans le `main` local vérifié le 6 novembre 2026 ; vérifier la branche utilisée avant de coder. Les règles de gameplay encore proposées restent à valider.
 :::
 
 ## Explorer le projet

@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="940" viewBox="0 0 1500 940" role="img" aria-labelledby="title desc">
+  <title id="title">Architecture technique CHOP-CHOP</title>
+  <desc id="desc">Le joueur utilise le front React et Vite déployé sur Vercel. Le front communique avec une API Fastify dont l'hébergement reste à confirmer et directement avec Supabase Auth pour la connexion. L'API utilise PostgreSQL Supabase. Docusaurus, les contrats partagés et GitHub Actions sont présentés comme outils du projet.</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#26364b" flood-opacity=".12"/></filter>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto"><path d="M1 1 L10 5.5 L1 10" fill="none" stroke="#466077" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    <marker id="arrowBlue" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto"><path d="M1 1 L10 5.5 L1 10" fill="none" stroke="#2b8392" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    <style>
+      text{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#233348}
+      .title{font-size:36px;font-weight:750;letter-spacing:-.8px}
+      .subtitle{font-size:17px;fill:#657488}
+      .card{fill:#fff;stroke:#bcc8d2;stroke-width:1.4;filter:url(#shadow)}
+      .head{font-size:24px;font-weight:750}
+      .subhead{font-size:15px;font-weight:650;fill:#43586e}
+      .body{font-size:17px;fill:#35475b}
+      .small{font-size:14px;fill:#66788b}
+      .status{font-size:13px;font-weight:700;letter-spacing:.25px}
+      .arrowLabel{font-size:14px;font-weight:700;fill:#52677e}
+      .section{font-size:15px;font-weight:750;letter-spacing:2px;fill:#6e7c8b}
+    </style>
+  </defs>
+  <rect width="1500" height="940" fill="#f7f8f8"/>
+  <circle cx="1360" cy="50" r="150" fill="#e9f4f3" opacity=".75"/>
+  <circle cx="65" cy="915" r="170" fill="#f5ebe0" opacity=".7"/>
+
+  <text x="750" y="71" text-anchor="middle" class="title">L’écosystème technique de CHOP-CHOP</text>
+  <text x="750" y="106" text-anchor="middle" class="subtitle">Parcours du joueur, services et outils de l’équipe</text>
+
+  <!-- Connections are behind the cards. -->
+  <path d="M270 412 H295" fill="none" stroke="#466077" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M660 412 H695" fill="none" stroke="#466077" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M1005 412 H1040" fill="none" stroke="#466077" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M495 216 V171 H1240 V206" fill="none" stroke="#2b8392" stroke-width="3" marker-end="url(#arrowBlue)"/>
+  <rect x="755" y="146" width="244" height="34" rx="17" fill="#e5f4f3"/>
+  <text x="877" y="168" text-anchor="middle" class="arrowLabel" fill="#2b8392">Connexion directe à Auth</text>
+  <text x="682" y="395" text-anchor="middle" class="arrowLabel">HTTP</text>
+
+  <!-- Player -->
+  <rect class="card" x="50" y="216" width="220" height="394" rx="16"/>
+  <rect x="50" y="216" width="220" height="90" rx="16" fill="#e9eef4"/>
+  <path d="M50 291 H270" stroke="#c8d1dc"/>
+  <circle cx="92" cy="260" r="22" fill="#d6e3ee"/>
+  <text x="92" y="267" text-anchor="middle" font-size="20" font-weight="750">J</text>
+  <text x="125" y="266" class="head">Joueur</text>
+  <text x="76" y="352" class="body">Navigateur web</text>
+  <text x="76" y="387" class="body">Clavier</text>
+  <text x="76" y="449" class="small">Lance une partie,</text>
+  <text x="76" y="475" class="small">prépare et livre,</text>
+  <text x="76" y="501" class="small">consulte son score.</text>
+
+  <!-- Front -->
+  <rect class="card" x="305" y="216" width="355" height="394" rx="16"/>
+  <rect x="305" y="216" width="355" height="90" rx="16" fill="#e7f1f7"/>
+  <path d="M305 291 H660" stroke="#c8d1dc"/>
+  <circle cx="349" cy="260" r="22" fill="#c9e5f2"/>
+  <text x="349" y="267" text-anchor="middle" font-size="20" font-weight="750">V</text>
+  <text x="382" y="266" class="head">Front · Vercel</text>
+  <text x="335" y="340" class="subhead">React 19 · TypeScript · Vite 7 · SCSS</text>
+  <text x="335" y="377" class="body">Menus, règles, classement</text>
+  <text x="335" y="412" class="body">et interface du joueur</text>
+  <path d="M335 438 H630" stroke="#e0e6eb"/>
+  <text x="335" y="473" class="subhead">Phaser</text>
+  <text x="335" y="502" class="small">Cuisine, personnages, collisions,</text>
+  <text x="335" y="526" class="small">animations et interactions</text>
+  <rect x="335" y="555" width="265" height="30" rx="15" fill="#fff2db"/>
+  <text x="467" y="575" text-anchor="middle" class="status" fill="#925e14">PHASER À INTÉGRER</text>
+
+  <!-- API -->
+  <rect class="card" x="705" y="216" width="300" height="394" rx="16"/>
+  <rect x="705" y="216" width="300" height="90" rx="16" fill="#eeeafa"/>
+  <path d="M705 291 H1005" stroke="#c8d1dc"/>
+  <circle cx="749" cy="260" r="22" fill="#ddd4f5"/>
+  <text x="749" y="267" text-anchor="middle" font-size="20" font-weight="750">A</text>
+  <text x="782" y="266" class="head">API · Back</text>
+  <text x="735" y="341" class="subhead">Node 22 · Fastify 5</text>
+  <text x="735" y="378" class="body">Drizzle ORM · Zod</text>
+  <text x="735" y="413" class="body">pg · jose</text>
+  <path d="M735 438 H975" stroke="#e0e6eb"/>
+  <text x="735" y="473" class="small">Profil, parties, scores</text>
+  <text x="735" y="497" class="small">et classement</text>
+  <rect x="735" y="555" width="236" height="30" rx="15" fill="#fff2db"/>
+  <text x="853" y="575" text-anchor="middle" class="status" fill="#925e14">HÉBERGEMENT À CONFIRMER</text>
+
+  <!-- Supabase -->
+  <rect class="card" x="1050" y="216" width="400" height="394" rx="16"/>
+  <rect x="1050" y="216" width="400" height="90" rx="16" fill="#e7f4ed"/>
+  <path d="M1050 291 H1450" stroke="#c8d1dc"/>
+  <circle cx="1094" cy="260" r="22" fill="#ccead7"/>
+  <text x="1094" y="267" text-anchor="middle" font-size="20" font-weight="750">S</text>
+  <text x="1127" y="266" class="head">Supabase</text>
+  <text x="1080" y="344" class="subhead">Authentification</text>
+  <text x="1080" y="375" class="body">Supabase Auth</text>
+  <text x="1080" y="405" class="small">Compte, connexion et jeton</text>
+  <path d="M1080 438 H1420" stroke="#e0e6eb"/>
+  <text x="1080" y="473" class="subhead">Base de données</text>
+  <text x="1080" y="504" class="body">PostgreSQL</text>
+  <text x="1080" y="534" class="small">Joueurs, parties, niveaux, scores</text>
+
+  <text x="50" y="657" class="section">OUTILS ET DOCUMENTATION DU PROJET</text>
+
+  <!-- Supporting cards -->
+  <rect class="card" x="50" y="683" width="430" height="164" rx="16"/>
+  <circle cx="95" cy="728" r="22" fill="#f5e2d7"/>
+  <text x="95" y="735" text-anchor="middle" font-size="20" font-weight="750">D</text>
+  <text x="130" y="736" class="head">Docusaurus</text>
+  <text x="80" y="782" class="body">Documentation de l’équipe</text>
+  <text x="80" y="813" class="small">Projet npm séparé · publication à définir</text>
+
+  <rect class="card" x="520" y="683" width="430" height="164" rx="16"/>
+  <circle cx="565" cy="728" r="22" fill="#e5e8ed"/>
+  <text x="565" y="735" text-anchor="middle" font-size="20" font-weight="750">G</text>
+  <text x="600" y="736" class="head">GitHub + CI</text>
+  <text x="550" y="782" class="body">Code, PR et vérifications</text>
+  <text x="550" y="813" class="small">pnpm typecheck · pnpm test</text>
+
+  <rect class="card" x="990" y="683" width="460" height="164" rx="16"/>
+  <circle cx="1035" cy="728" r="22" fill="#e6eaf5"/>
+  <text x="1035" y="735" text-anchor="middle" font-size="20" font-weight="750">Z</text>
+  <text x="1070" y="736" class="head">Paquet partagé</text>
+  <text x="1020" y="782" class="body">Types et contrats Zod</text>
+  <text x="1020" y="813" class="small">@chopchop/shared · front + API</text>
+
+  <text x="750" y="899" text-anchor="middle" class="small">Schéma des choix techniques et de l’état vérifié dans le dépôt · 6 novembre 2026</text>
+</svg>
