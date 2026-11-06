@@ -92,15 +92,17 @@ export interface FinishGameResponse {
   isRecord: boolean;
 }
 
-export interface LeaderboardEntry {
-  rank: number;
-  pseudo: string;
-  score: number;
-  durationMs: number;
-  finishedAt: string;
-}
+export const LeaderboardEntrySchema = z.object({
+  rank: z.number().int().positive(),
+  pseudo: z.string(),
+  score: z.number().int().nonnegative(),
+  durationMs: z.number().nonnegative(),
+  finishedAt: z.string(),
+});
+export type LeaderboardEntry = z.infer<typeof LeaderboardEntrySchema>;
 
-export interface LeaderboardResponse {
-  levelId: number;
-  entries: LeaderboardEntry[];
-}
+export const LeaderboardResponseSchema = z.object({
+  levelId: LevelIdSchema,
+  entries: z.array(LeaderboardEntrySchema),
+});
+export type LeaderboardResponse = z.infer<typeof LeaderboardResponseSchema>;
