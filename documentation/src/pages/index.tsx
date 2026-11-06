@@ -8,10 +8,10 @@ import styles from './index.module.css';
 const cards = [
   {title: 'Préparer', text: 'Découper la tomate, cuire la viande et assembler des recettes exactes.', to: '/docs/gameplay', label: 'Explorer le gameplay'},
   {title: 'Livrer', text: 'Répondre aux commandes à temps et enchaîner les livraisons pour augmenter le combo.', to: '/docs/score', label: 'Comprendre le score'},
-  {title: 'Se classer', text: 'Comparer son meilleur score validé à celui des autres joueurs inscrits.', to: '/docs/classement', label: 'Découvrir le classement'},
+  {title: 'Se classer', text: 'Comparer son score à celui des autres joueurs du même niveau.', to: '/docs/classement', label: 'Découvrir le classement'},
 ];
 export default function Home(): ReactNode {
-  return <Layout title="Documentation du jeu web" description="CHOP-CHOP : jeu de cuisine solo en 2D, équipe, gameplay, cinq niveaux prévus et classement par niveau.">
+  return <Layout title="Documentation du jeu web" description="CHOP-CHOP : jeu de cuisine solo en 2D, équipe, gameplay, trois niveaux prévus et classement par niveau.">
     <header className={styles.hero}>
       <div className={`container ${styles.heroInner}`}>
         <div>
@@ -26,7 +26,7 @@ export default function Home(): ReactNode {
           <Link className="button button--outline button--primary button--lg" to="/docs/regles-du-jeu">Règles du jeu</Link>
           <Link className="button button--outline button--primary button--lg" to="/docs/cas-utilisation">Les 54 cas d’utilisation</Link>
         </div>
-        <p className={styles.meta}>Solo · Ordinateur · Clavier · 5 niveaux prévus</p>
+        <p className={styles.meta}>Solo · Ordinateur · Clavier · 3 niveaux prévus</p>
         </div>
         <aside className={styles.overview} aria-labelledby="overview-title">
           <Heading as="h2" id="overview-title" className={styles.overviewTitle}>Le projet en un coup d’œil</Heading>
@@ -51,7 +51,7 @@ export default function Home(): ReactNode {
       </section>
       <section className={styles.note}>
         <Heading as="h2">Un cadrage à valider ensemble</Heading>
-        <p>Le cadrage initial est complété par le contexte du 6 novembre 2026 : cinq niveaux prévus, Supabase et une API Fastify développée sur une branche non fusionnée. Le moteur de jeu et les barèmes restent à valider.</p>
+        <p>Le projet prévoit trois niveaux, Supabase Auth et une API Fastify déjà présente dans le code. React porte les menus et interfaces ; Phaser porte la cuisine et les interactions. La durée définitive, les recettes et les barèmes restent à valider.</p>
         <Link to="/docs/validation">Consulter les décisions et les critères du prototype →</Link>
       </section>
     </main>
