@@ -29,7 +29,7 @@ Le jeu utilise un monorepo pnpm avec Node.js 22 ou supérieur, pnpm 11 et les wo
 
 Le site Docusaurus dans `documentation/` est un projet npm séparé, avec son propre `package-lock.json` et ses commandes `npm run typecheck` et `npm run build`. Le workflow CI actuel vérifie le monorepo pnpm, pas la compilation Docusaurus. Le front utilise actuellement TypeScript 5, l’API et le paquet partagé TypeScript 7, et Docusaurus TypeScript 6 ; harmoniser ces versions seulement si une incompatibilité concrète le demande.
 
-Les tests de l’API utilisent Vitest. Les tables décrites sont `joueur`, `niveau`, `version_regles` et `partie`. Les migrations `0000` à `0004` sont mentionnées ; `0003` initialise cinq niveaux et la règle `v1` de 180 secondes. Les noms des niveaux restent provisoires. Le périmètre produit a depuis été ramené à trois niveaux ; les données et contrats doivent encore être alignés.
+Les tests de l’API utilisent Vitest. Les tables décrites sont `joueur`, `niveau`, `version_regles` et `partie`. Les migrations `0000` à `0004` sont mentionnées ; `0003` initialise trois niveaux et la règle `v1` de 180 secondes. Les noms des niveaux restent provisoires. Le périmètre produit a depuis été ramené à trois niveaux ; les données et contrats doivent encore être alignés.
 
 ## Authentification et parcours d’une partie
 

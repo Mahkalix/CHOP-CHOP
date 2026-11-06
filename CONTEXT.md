@@ -78,7 +78,7 @@ Le contrat de requête et de réponse est dans `packages/shared/src/game.ts`. R�
 
 ## Données et classement
 
-Le schéma Drizzle actuel contient `joueur`, `niveau`, `version_regles` et `partie`. `joueur.id_joueur` référence `auth.users`. Les migrations créent cinq niveaux et `packages/shared/src/levels.ts` accepte encore les identifiants 1 à 5. Le périmètre confirmé est désormais **trois niveaux** : aligner interface, API, données et documentation dans un changement coordonné. Si des données sont déjà enregistrées, conserver leur intégrité lors de cette évolution.
+Le schéma Drizzle actuel contient `joueur`, `niveau`, `version_regles` et `partie`. `joueur.id_joueur` référence `auth.users`. Les migrations créent trois niveaux et `packages/shared/src/levels.ts` accepte encore les identifiants 1 à 5. Le périmètre confirmé est désormais **trois niveaux** : aligner interface, API, données et documentation dans un changement coordonné. Si des données sont déjà enregistrées, conserver leur intégrité lors de cette évolution.
 
 Les recettes et les ingrédients sont définis dans `packages/shared/src/recipes.ts` et exposés par `GET /recipes` ; les commandes sont prévues dans la configuration du jeu d'après le schéma et la documentation du dépôt. Le MCD/MLD transmis présente un modèle plus complet avec `RECETTE`, `INGREDIENT`, `ETAT_INGREDIENT`, `COMPOSITION` et `COMMANDE`, mais décrit aussi une variante minimale pour un prototype rapide. Ces tables supplémentaires ne sont pas présentes dans le schéma actuel. Le même document propose une identité par pseudo local sans compte. Le projet retient un pseudo seul, sans email ni mot de passe, porté par une session anonyme Supabase Auth, ce qui donne à chaque joueur un identifiant vérifié par l'API. Utiliser le document pour comprendre les concepts, sans coder ses tables sans décision explicite.
 
@@ -132,7 +132,7 @@ Dans la description de PR, indiquer le besoin, les parties du code touchées, ce
 3. Délai avant brûlure (6 secondes proposées, non validées), résultat d'une livraison invalide, d'une commande expirée, d'une cuisson trop longue et d'une pause.
 4. Contrat concret entre le jeu Phaser, déjà intégré dans `front/src/features/game/`, et les interfaces React ; la répartition des responsabilités est déjà décidée.
 5. Classement de toutes les parties ou du meilleur score par joueur, départage et affichage du rang personnel.
-6. Alignement sûr des cinq niveaux actuellement acceptés en code avec les trois niveaux retenus.
+6. Alignement sûr des trois niveaux actuellement acceptés en code avec les trois niveaux retenus.
 7. Détails de revue et de fusion qui ne sont pas fixés dans Docusaurus.
 
 Chaque décision prise doit indiquer la date, la personne qui l'a validée, la règle retenue et les fichiers ou tickets à mettre en cohérence. L'ancien cahier des charges propose notamment des recettes, des touches, des durées et une formule de score ; ces valeurs restent des **propositions** tant qu'elles ne sont pas validées.
