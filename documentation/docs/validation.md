@@ -12,7 +12,7 @@ Trois niveaux sont prévus, avec un classement par niveau. La priorité est un n
 
 Le code de la règle `v1` initialise actuellement une durée technique de 180 secondes ; la durée de jeu définitive reste à valider. L’API accepte une durée mesurée de 175 à 240 secondes ; changer la durée prévue exige une nouvelle version des règles.
 
-L’inscription et la connexion doivent passer par Supabase Auth côté front ; ce parcours reste à intégrer. L’API Fastify vérifie déjà le jeton et est présente dans le `main` local vérifié le 6 novembre 2026.
+La connexion se fait par pseudo seul, avec une session anonyme Supabase Auth côté front ; ce parcours reste à intégrer. L’API Fastify vérifie déjà le jeton et est présente dans le `main` local vérifié le 6 novembre 2026.
 
 ## Points à valider ou à intégrer
 
@@ -22,7 +22,7 @@ Confirmer la cuisson autonome, la suspension de découpe et les durées proposé
 
 Valider la génération des commandes, le barème des combos et les plafonds provisoires de score de chaque niveau.
 
-Intégrer Phaser au front React/Vite et aligner les trois niveaux décidés avec Figma, les données et les contrats partagés ; le code contient encore des limites et données pour cinq niveaux.
+Brancher la cuisine Phaser, déjà intégrée au front React/Vite, aux recettes, aux commandes, au score et à l’API, et aligner les trois niveaux décidés avec Figma, les données et les contrats partagés ; le code contient encore des limites et données pour cinq niveaux.
 
 Vérifier l’intégration front/API : création du pseudo, démarrage, fin de partie, abandon et classement. Vérifier les refus `422` pour les durées et scores hors limites.
 
