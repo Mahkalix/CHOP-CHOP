@@ -1,6 +1,6 @@
 # CHOP-CHOP
 
-A solo, desktop-only, Overcooked-like browser game: 3 levels and a per-level leaderboard.
+A solo, desktop-only, Overcooked-like browser game: 5 levels and a per-level leaderboard.
 
 ## Stack
 
@@ -52,7 +52,7 @@ Typical flow: sign up with Supabase Auth, `PUT /me` once to choose a pseudo, the
 `POST /games` when the level starts and `POST /games/:id/finish` when the timer ends.
 
 - `pseudo`: 2-16 characters, letters/digits/space/`_`/`-` (trimmed), unique whatever the case
-- `levelId`: the game uses 1 to 3 (the API accepts 1 to 5)
+- `levelId`: a number from 1 to 5
 - The **duration is measured by the server** (time between start and finish), never sent by the client
 - Finish errors: `400` invalid body, `404` unknown game or not yours, `409` game already ended,
   `422` implausible score (the game is then closed)

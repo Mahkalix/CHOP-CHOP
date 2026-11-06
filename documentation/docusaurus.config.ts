@@ -4,7 +4,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'CHOP-CHOP',
-  tagline: 'Un jeu de cuisine solo. Trois niveaux, un classement par niveau.',
+  tagline: 'Un jeu de cuisine solo. Cinq niveaux, un classement par niveau.',
   favicon: 'img/chopchop-logo.svg',
   // Use the standard toolchain to avoid native SWC cache issues on Windows.
   future: {v4: true, faster: false},

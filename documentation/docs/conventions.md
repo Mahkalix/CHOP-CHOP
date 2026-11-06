@@ -64,7 +64,7 @@ Le fichier `apps/api/.env` n’est jamais commité. Il est préparé à partir d
 
 ## Priorités de réalisation
 
-Le projet est prévu sur deux jours. La priorité est un niveau jouable de bout en bout avant la déclinaison des trois niveaux. Le moteur du jeu doit encore être choisi entre Phaser et un Canvas 2D maison intégré au front React/Vite. Les noms des niveaux et certaines limites de score restent provisoires.
+Le projet est prévu sur deux jours. La priorité est un niveau jouable de bout en bout avant la déclinaison des cinq niveaux. Le moteur du jeu doit encore être choisi entre Phaser et un Canvas 2D maison intégré au front React/Vite. Les noms des niveaux et certaines limites de score restent provisoires.
 
 ## Compléments de coordination proposés
 
