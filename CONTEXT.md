@@ -31,9 +31,9 @@ Si deux sources se contredisent, consigner l'écart dans la PR ou l'issue et dem
 
 ## État de cette copie du dépôt
 
-Cette lecture porte sur le `main` local au commit `dba0aa9` du 6 novembre 2026. Une branche ou une PR plus récente peut avoir changé cet état. `front/src/app/App.tsx` affiche actuellement `HomePage`, et cette page n'est pas encore une partie jouable. Le front ne contient pas encore `supabase-js` ni Phaser dans `front/package.json`.
+Cette description reflète les fonctionnalités fusionnées dans `main` lors de la dernière vérification. Vérifier l'état actuel de la branche avant toute intervention : la cuisine Phaser est intégrée dans l'écran « jouer », mais le cycle complet des recettes, commandes et scores n'est pas encore raccordé. L'authentification anonyme côté front reste à intégrer.
 
-Le back présent fournit authentification des appels API, profil, ouverture, fin et abandon de partie, et lecture du classement. Il ne fournit pas le gameplay. Les tests API et auth utilisent aussi un dépôt en mémoire. Un essai manuel avec Supabase a été rapporté dans la PR d'intégration ; il ne remplace pas un test automatisé avec PostgreSQL réel.
+Le back présent fournit authentification des appels API, profil, ouverture, fin et abandon de partie, et lecture du classement. Il ne fournit pas le gameplay. Les tests de l'API utilisent un dépôt en mémoire (`api.test.ts`) ; `auth.test.ts` vérifie les jetons avec un faux serveur de clés. Un essai manuel avec Supabase a été rapporté dans la PR d'intégration ; il ne remplace pas un test automatisé avec PostgreSQL réel.
 
 ## Structure et commandes
 
@@ -42,9 +42,9 @@ Monorepo pnpm 11, Node 22 ou plus.
 | Chemin | Responsabilité actuelle |
 | --- | --- |
 | `front/` | React 19 pour les menus, les règles, le classement et les interfaces. TypeScript, Vite et modules SCSS constituent le socle actuel. |
-| Gameplay Phaser | Cuisine, personnages, collisions, animations et interactions. Son emplacement dans le monorepo et son raccordement au front restent à implémenter. |
+| Gameplay Phaser | Cuisine, personnages, collisions, animations et interactions. Le code est dans `front/src/features/game/` (scène, postes de cuisine, prise et dépôt d'objets) et s'affiche sur l'écran « jouer » ; les recettes, les commandes, le score et le raccordement à l'API restent à implémenter. |
 | `apps/api/` | Fastify 5, Drizzle, PostgreSQL Supabase, validation et routes HTTP. |
-| `packages/shared/` | Schémas Zod, types du contrat HTTP, identifiants et limites des niveaux. |
+| `packages/shared/` | Schémas Zod, types du contrat HTTP, identifiants et limites des niveaux, règles de la cuisine (ingrédients, états, recettes). |
 | `documentation/` | Site Docusaurus et documentation destinée à l'équipe ; installation et build npm séparés du monorepo pnpm. |
 | `.github/workflows/ci.yml` | Sur PR et `main`, installation, typecheck puis tests. |
 
@@ -54,20 +54,25 @@ Le site `documentation/` utilise son propre `package-lock.json` et les commandes
 
 ## Répartition React et Phaser
 
-**Décision de l'équipe du 6 novembre 2026.** React porte les menus, les règles, le classement et les interfaces. Phaser porte la cuisine, les personnages, les collisions, les animations et les interactions. Le projet conserve TypeScript et Vite. Le package Phaser et son point d'intégration ne sont pas encore présents dans cette copie du dépôt. Définir ce point d'intégration à partir de la structure existante, puis conserver une séparation lisible entre les écrans React et la logique du jeu Phaser.
+**Décision de l'équipe du 6 novembre 2026.** React porte les menus, les règles, le classement et les interfaces. Phaser porte la cuisine, les personnages, les collisions, les animations et les interactions. Le projet conserve TypeScript et Vite. Phaser est installé et son point d'intégration existe : `front/src/app/App.tsx` charge `Kitchen` (`front/src/features/game/`) sur l'écran « jouer ». Conserver une séparation lisible entre les écrans React et la logique du jeu Phaser.
 
 ## Parcours front et API
 
-L'authentification décidée utilise Supabase Auth côté front avec email et mot de passe. L'API reçoit seulement un jeton `Authorization: Bearer <token>` et le vérifie. Un pseudo est associé au compte authentifié. Les routes présentes sont :
+L'authentification décidée est un pseudo seul, sans email ni mot de passe : le front ouvre une session anonyme avec Supabase Auth (`signInAnonymously()`), puis le joueur choisit son pseudo une seule fois. L'API ne reçoit aucun identifiant, seulement un jeton `Authorization: Bearer <token>` qu'elle vérifie. Le pseudo est associé à ce compte anonyme. Les routes présentes sont :
 
 | Route | Rôle |
 | --- | --- |
 | `GET /health` | Vérifier que l'API répond. |
-| `GET /me`, `PUT /me` | Lire ou enregistrer le pseudo du joueur connecté. |
+| `GET /me` | Lire le profil du joueur connecté ; `404` s'il n'a pas encore de pseudo. |
+| `PUT /me` | Choisir son pseudo une seule fois : il n'est plus modifiable ensuite (renvoyer le même pseudo reste accepté). |
+| `GET /pseudos/:pseudo/available` | Vérifier qu'un pseudo est libre. |
+| `GET /me/games` | Lire l'historique des parties terminées du joueur. |
+| `GET /me/best` | Lire le meilleur score du joueur sur chaque niveau terminé. |
 | `POST /games` | Ouvrir une partie pour un niveau, après création du profil. |
 | `POST /games/:id/finish` | Terminer la partie avec `score` et `bestCombo`, puis recevoir le rang, le score et la durée serveur. |
 | `POST /games/:id/abandon` | Abandonner sans résultat classé. |
 | `GET /leaderboard/:levelId` | Lire les parties terminées d'un niveau. |
+| `GET /recipes` | Lire les ingrédients et leurs états, les recettes et les phases de disponibilité (route publique). |
 
 Le contrat de requête et de réponse est dans `packages/shared/src/game.ts`. Réutiliser ces schémas au lieu de dupliquer les limites dans le front. Une seule partie peut rester ouverte par joueur. La durée classée est mesurée par le serveur entre le démarrage et la fin. La version de règles initiale est réglée à 180 secondes, avec une tolérance de 5 secondes avant et 60 secondes après. Ces valeurs sont **techniques et provisoires**. Avant de brancher le timer du jeu, décider sa durée et synchroniser son départ avec `POST /games`. Prévoir les erreurs de réseau et une fin de partie soumise une seule fois.
 
@@ -75,7 +80,7 @@ Le contrat de requête et de réponse est dans `packages/shared/src/game.ts`. R�
 
 Le schéma Drizzle actuel contient `joueur`, `niveau`, `version_regles` et `partie`. `joueur.id_joueur` référence `auth.users`. Les migrations créent cinq niveaux et `packages/shared/src/levels.ts` accepte encore les identifiants 1 à 5. Le périmètre confirmé est désormais **trois niveaux** : aligner interface, API, données et documentation dans un changement coordonné. Si des données sont déjà enregistrées, conserver leur intégrité lors de cette évolution.
 
-Les recettes, ingrédients et commandes sont prévus dans la configuration du jeu d'après le schéma et la documentation du dépôt. Le MCD/MLD transmis présente un modèle plus complet avec `RECETTE`, `INGREDIENT`, `ETAT_INGREDIENT`, `COMPOSITION` et `COMMANDE`, mais décrit aussi une variante minimale pour un prototype rapide. Ces tables supplémentaires ne sont pas présentes dans le schéma actuel. Le même document propose une identité par pseudo local sans compte, alors que le projet a depuis choisi Supabase Auth. Utiliser le document pour comprendre les concepts, sans coder ses tables ou son ancien mode d'identification sans décision explicite.
+Les recettes et les ingrédients sont définis dans `packages/shared/src/recipes.ts` et exposés par `GET /recipes` ; les commandes sont prévues dans la configuration du jeu d'après le schéma et la documentation du dépôt. Le MCD/MLD transmis présente un modèle plus complet avec `RECETTE`, `INGREDIENT`, `ETAT_INGREDIENT`, `COMPOSITION` et `COMMANDE`, mais décrit aussi une variante minimale pour un prototype rapide. Ces tables supplémentaires ne sont pas présentes dans le schéma actuel. Le même document propose une identité par pseudo local sans compte. Le projet retient un pseudo seul, sans email ni mot de passe, porté par une session anonyme Supabase Auth, ce qui donne à chaque joueur un identifiant vérifié par l'API. Utiliser le document pour comprendre les concepts, sans coder ses tables sans décision explicite.
 
 L'API classe actuellement **toutes les parties terminées** par niveau, selon score décroissant, durée croissante, puis ancienneté. Un joueur peut apparaître plusieurs fois. Le cahier des charges et le MCD/MLD évoquent le meilleur score par joueur. Ce choix reste à arbitrer avec l'équipe. Les plafonds `LEVEL_LIMITS` sont des valeurs provisoires et doivent être compatibles avec le barème finalement choisi.
 
@@ -125,7 +130,7 @@ Dans la description de PR, indiquer le besoin, les parties du code touchées, ce
 1. Recettes et différences entre les trois niveaux.
 2. Durée de partie, génération des commandes, barème, combo et pénalités.
 3. Résultat d'une livraison invalide, d'une commande expirée, d'une cuisson trop longue et d'une pause.
-4. Emplacement du module Phaser et contrat concret entre le jeu et les interfaces React ; la répartition des responsabilités est déjà décidée.
+4. Contrat concret entre le jeu Phaser, déjà intégré dans `front/src/features/game/`, et les interfaces React ; la répartition des responsabilités est déjà décidée.
 5. Classement de toutes les parties ou du meilleur score par joueur, départage et affichage du rang personnel.
 6. Alignement sûr des cinq niveaux actuellement acceptés en code avec les trois niveaux retenus.
 7. Détails de revue et de fusion qui ne sont pas fixés dans Docusaurus.
