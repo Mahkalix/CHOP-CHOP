@@ -1,103 +1,71 @@
 # CHOP-CHOP
 
-A solo, desktop-only, Overcooked-like browser game: 5 levels and a per-level leaderboard.
+CHOP-CHOP est un jeu web de cuisine solo, jouable au clavier sur ordinateur. L'équipe prévoit **trois niveaux** et un classement par niveau. La priorité est de rendre le niveau 1 jouable de bout en bout, de la connexion au résultat classé.
 
-## Stack
+## Sites en ligne
 
-- **Front:** React 19 + TypeScript + Vite + Sass (`front`). Menus and navigation are React; the future kitchen scene will use Phaser inside the same app.
-- **Back:** Node.js + Fastify + Drizzle ORM, PostgreSQL hosted on Supabase (`apps/api`)
-- **Shared:** Zod schemas and types used by both sides (`packages/shared`, imported as `@chopchop/shared`)
-- pnpm monorepo, Node 22+
+| | Site en ligne | Projet Vercel |
+| --- | --- | --- |
+| Front, prototype actuel | [Ouvrir le front](https://chop-chop-front.vercel.app/) | [Voir le projet Vercel](https://vercel.com/mahkalixs-projects/chop-chop-front) |
+| Documentation Docusaurus | [Lire la documentation](https://chop-chop-docs.vercel.app/) | [Voir le projet Vercel](https://vercel.com/mahkalixs-projects/chop-chop-docs) |
 
-## Getting started (API)
+La partie complète reste à intégrer au front.
 
-```bash
-pnpm install
-cp apps/api/.env.example apps/api/.env   # then fill in DATABASE_URL
-pnpm dev:api                              # http://localhost:3000
-```
+## En local
 
-`DATABASE_URL` is the Supabase **Session pooler** connection string
-(Supabase dashboard > Connect > Direct > Method: Session pooler). Ask the team for
-the password; never commit `.env`. `SUPABASE_URL` is the project URL, used to verify player tokens.
+Prérequis : **Node.js 22+** et **pnpm 11** pour le jeu. Les liens `localhost` fonctionnent pendant que les serveurs sont lancés.
 
-Only one person should apply migrations, to avoid concurrent schema changes:
+### Front
 
-```bash
-pnpm --filter @chopchop/api db:generate   # after editing apps/api/src/db/schema.ts
-pnpm --filter @chopchop/api db:migrate
-```
+Depuis la racine du dépôt :
 
-Other commands: `pnpm test`, `pnpm typecheck`.
-
-## API
-
-Players sign up and log in **directly with Supabase Auth** from the front end (`supabase-js`,
-email + password). The API never sees passwords: protected routes expect the access token as
-`Authorization: Bearer <token>`, and the API verifies it against the project's public signing keys.
-Only the data needed by the leaderboard is stored server-side (`joueur`, `niveau`, `version_regles`,
-`partie`); recipes, ingredients and orders live in the game config.
-
-| Method | Route | Auth | Description |
-|---|---|---|---|
-| GET | `/health` | no | Liveness check |
-| GET | `/me` | yes | Own profile, `404` if no pseudo chosen yet |
-| PUT | `/me` | yes | Create or change the pseudo (`{ "pseudo": "Gordon" }`), `409` if taken |
-| POST | `/games` | yes | Start a game (`{ "levelId": 1 }`), returns `201 { gameId, levelId, startedAt }` |
-| POST | `/games/:id/finish` | yes | End a game (`{ "score": 300, "bestCombo": 4 }`), returns `{ rank, score, durationMs }` |
-| POST | `/games/:id/abandon` | yes | Give up a game, `204`. Abandoned games are never ranked |
-| GET | `/leaderboard/:levelId?limit=10` | no | Top games of a level (limit max 50) |
-
-Typical flow: sign up with Supabase Auth, `PUT /me` once to choose a pseudo, then for each game
-`POST /games` when the level starts and `POST /games/:id/finish` when the timer ends.
-
-- `pseudo`: 2-16 characters, letters/digits/space/`_`/`-` (trimmed), unique whatever the case
-- `levelId`: a number from 1 to 5
-- The **duration is measured by the server** (time between start and finish), never sent by the client
-- Finish errors: `400` invalid body, `404` unknown game or not yours, `409` game already ended,
-  `422` implausible score (the game is then closed)
-- `POST /games` returns `403` if the player has no profile yet
-- `GET /leaderboard/:levelId` returns
-  `{ "levelId": 1, "entries": [{ "rank", "pseudo", "score", "durationMs", "finishedAt" }] }`,
-  sorted by score (desc), then duration (asc), then finish time
-
-Scores are computed client-side, so the API applies plausibility bounds:
-
-- the score cannot exceed `LEVEL_LIMITS[level].maxScore` (`packages/shared/src/levels.ts`, placeholder values)
-- a game ends when the timer of its rules version runs out, so the server-measured duration must be within
-  `duree_partie_secondes` minus 5 s / plus 60 s (`GAME_DURATION_TOLERANCE_MS`, to allow for lag and pauses)
-- a player has one game in progress at most: starting a new one abandons the previous one
-
-## Deployment
-
-Set `DATABASE_URL`, `PORT` and `CORS_ORIGIN` (the front's URL) as environment variables on
-the host, then run `pnpm --filter @chopchop/api start`.
-
-## Frontend
-
-```bash
+```sh
 pnpm install
 pnpm dev:front
-pnpm build:front
 ```
 
-The menu uses hash routes (`#accueil`, `#jouer`, `#regles`, `#classement`) so direct links and browser back/forward work on static hosting without rewrite rules. The play screen is an explicit integration placeholder; it does not create a game session. The leaderboard does not display invented scores and awaits API integration.
+Ouvrir le [front local](http://localhost:5173/) (port Vite par défaut).
 
-Keep React for navigation, forms, rules, leaderboard and accessible HUD. Mount Phaser in the play screen for the scene, sprites, collisions and keyboard loop; create/destroy its instance with the screen lifecycle and load it only when playing. Exchange discrete events (start, score, pause, finish) instead of updating React on every frame. Phaser integration belongs to the game issues, starting with #11.
+### Documentation Docusaurus
 
-## Front previews
+Dans un autre terminal, depuis la racine du dépôt :
 
-The React/Vite front is connected to Vercel through its native GitHub integration.
-Front PRs receive deployment checks and preview links from the Vercel bot.
-See [Vercel setup and verification](docs/vercel.md) for monorepo settings,
-changed-file filtering and access to protected previews.
+```sh
+cd documentation
+npm ci
+npm start -- --port 3001
+```
 
-## Player authentication (frontend)
+Ouvrir la [documentation locale](http://localhost:3001/). Le port 3001 laisse le port 3000 libre pour l'API.
 
-Copy `front/.env.example` to `front/.env`. Set `VITE_API_URL` to the public CHOP-CHOP API origin, `VITE_SUPABASE_URL` to the Supabase project URL, and `VITE_SUPABASE_PUBLISHABLE_KEY` to its **publishable** key (the legacy **anon** key also works). These are browser-visible values: never use `service_role`, a secret API key, or database credentials. Restart Vite or rebuild the deployment after changing them.
+### API, si nécessaire
 
-In Supabase Auth, enable email/password and configure the site URL and allowed redirect URLs for the frontend origin/path used for signup confirmation. The API's `SUPABASE_URL` must point to the same project, with asymmetric signing keys supported by the existing API verifier (ES256/RS256). Configure its `CORS_ORIGIN` to allow the frontend origin. These are service configuration prerequisites, not changes made by this frontend PR.
+Depuis la racine du dépôt, créer son fichier de configuration local à partir de [`apps/api/.env.example`](apps/api/.env.example), renseigner les valeurs demandées à l'équipe, puis lancer :
 
-Open `#jouer`: sign in or create an account, confirm the email if required, then choose a pseudo. Supabase handles password submission, session persistence and token refresh. Only the current access token goes to CHOP-CHOP's `GET/PUT /me`; a `404` asks for a pseudo, `409` asks for another pseudo, and `401` asks for a new login. The menu's locally stored pseudo is only a suggestion. Logout ends the current browser session. A ready profile still shows an explicit kitchen placeholder: no `POST /games` is sent before the game scene exists (#11).
+```sh
+cp apps/api/.env.example apps/api/.env
+pnpm dev:api
+```
 
-Validation: `pnpm --filter @chopchop/front test`, `pnpm build:front`, `pnpm typecheck`. Component tests use a simulated Supabase SDK and mocked profile responses; they do not prove a deployed Supabase/API integration. Before final validation, use a real test account to check signup/confirmation, login/reload, pseudo conflict, token refresh, logout and expired-session rejection. References: [Supabase password sign-in](https://supabase.com/docs/reference/javascript/auth-signinwithpassword), [auth state events](https://supabase.com/docs/reference/javascript/auth-onauthstatechange).
+Ne jamais commiter le fichier `.env` ni les secrets. Vérifications du monorepo : `pnpm typecheck` et `pnpm test`.
+
+## Repères dans le dépôt
+
+| Chemin | Rôle |
+| --- | --- |
+| [`front/`](front/) | Interface React 19, TypeScript, Vite et SCSS ; scènes de jeu avec Phaser. |
+| [`apps/api/`](apps/api/) | API Fastify 5, Drizzle et accès à PostgreSQL sur Supabase. |
+| [`packages/shared/`](packages/shared/) | Types et schémas Zod communs au front et à l'API. |
+| [`documentation/`](documentation/) | Site Docusaurus, installé et construit séparément avec npm. |
+
+Les [conventions de travail](documentation/docs/conventions.md), l'[architecture et les routes API](documentation/docs/architecture.md) et la [configuration Vercel du front](docs/vercel.md) donnent le détail. Le travail en cours se suit dans les [issues](https://github.com/Mahkalix/CHOP-CHOP/issues) et le [Project](https://github.com/users/Mahkalix/projects/3).
+
+## Session joueur Supabase
+
+Copier `front/.env.example` vers `front/.env`, puis renseigner `VITE_API_URL`, `VITE_SUPABASE_URL` et `VITE_SUPABASE_PUBLISHABLE_KEY` (clé publique publishable ou anon historique). Ne jamais utiliser de clé secrète, service_role ni de mot de passe de base côté front. Redémarrer Vite ou reconstruire le déploiement après modification.
+
+Activer **Anonymous Sign-Ins** dans Supabase Auth. Le front et l’API doivent utiliser le même projet Supabase ; le vérificateur API accepte les signatures ES256/RS256. Autoriser l’origine du front dans `CORS_ORIGIN` côté API.
+
+Depuis Jouer, ouvrir une session anonyme, choisir son pseudo une seule fois puis accéder à la cuisine Phaser. La session est conservée dans le navigateur et son jeton est rafraîchi par le SDK. Seul le jeton Bearer est transmis à `GET/PUT /me` ; aucun email ni mot de passe n’est demandé. Effacer les données du navigateur ou quitter la session anonyme fait perdre l’accès à ce profil. Le cycle de partie (`POST /games`, fin et abandon) reste une intégration séparée.
+
+Vérifier avec `pnpm typecheck`, `pnpm test` et `pnpm build:front`. Les tests front simulent Supabase et l’API ; une recette sur les services déployés reste nécessaire.

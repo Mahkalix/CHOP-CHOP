@@ -9,7 +9,7 @@ export function getAuthClient(): SupabaseClient | null {
   try {
     if (!['http:', 'https:'].includes(new URL(url).protocol)) return null;
     client ??= createClient(url, key, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
     });
     return client;
   } catch {

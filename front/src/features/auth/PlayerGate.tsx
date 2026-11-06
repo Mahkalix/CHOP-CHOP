@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type ReactNode, type FormEvent } from 'react';
 import { PseudoSchema, type Profile } from '@chopchop/shared';
 import { useAuth } from './AuthProvider';
 import { AuthForm } from './AuthForm';
 import { ProfileError, requestProfile } from './profileApi';
 import s from './PlayerGate.module.scss';
 
-export function PlayerGate() {
+export function PlayerGate({ children }: { children?: ReactNode }) {
   const { client, session, loading, error } = useAuth();
   const [rejectedToken, setRejectedToken] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
@@ -27,22 +27,23 @@ export function PlayerGate() {
     } catch { setLogoutError('Déconnexion impossible. Réessaie.'); }
     finally { setSigningOut(false); }
   }
-  return <section className={s.panel}>
-    <ProfilePanel key={token} token={token} onExpired={() => setRejectedToken(token)} />
+  return <section>
+    <ProfilePanel key={session.user.id} token={token} onExpired={() => setRejectedToken(token)}>{children}</ProfilePanel>
+    <p>Quitter cette session anonyme fait perdre l’accès à ton profil sur ce navigateur.</p>
     <button type="button" onClick={signOut} disabled={signingOut}>{signingOut ? 'Déconnexion…' : 'Se déconnecter'}</button>
     {logoutError && <p role="alert">{logoutError}</p>}
   </section>;
 }
 
-function ProfilePanel({ token, onExpired }: { token: string; onExpired: () => void }) {
+function ProfilePanel({ token, onExpired, children }: { token: string; onExpired: () => void; children?: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
+  const hasProfile = useRef(false);
   const [pseudo, setPseudo] = useState(() => {
     try { return sessionStorage.getItem('pseudo') ?? ''; } catch { return ''; }
   });
   const [loading, setLoading] = useState(true);
   const [loadFailed, setLoadFailed] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [editing, setEditing] = useState(true);
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
   const saveController = useRef<AbortController | null>(null);
@@ -51,10 +52,11 @@ function ProfilePanel({ token, onExpired }: { token: string; onExpired: () => vo
 
   useEffect(() => {
     const controller = new AbortController();
-    setLoading(true); setError(''); setLoadFailed(false);
+    setLoading(!hasProfile.current); setSaving(false); setError(''); setLoadFailed(false);
     requestProfile(token, controller.signal).then(data => {
       if (controller.signal.aborted) return;
-      setProfile(data); setEditing(!data);
+      hasProfile.current = !!data;
+      setProfile(data);
       if (data) setPseudo(data.pseudo);
       setLoading(false);
     }).catch((failure: unknown) => {
@@ -77,7 +79,8 @@ function ProfilePanel({ token, onExpired }: { token: string; onExpired: () => vo
     try {
       const data = await requestProfile(token, controller.signal, parsed.data);
       if (controller.signal.aborted || !data) return;
-      setProfile(data); setPseudo(data.pseudo); setEditing(false);
+      hasProfile.current = !!data;
+      setProfile(data); setPseudo(data.pseudo);
     } catch (failure) {
       if (controller.signal.aborted) return;
       if (failure instanceof ProfileError && failure.status === 401) onExpiredRef.current();
@@ -89,16 +92,14 @@ function ProfilePanel({ token, onExpired }: { token: string; onExpired: () => vo
   if (loadFailed) return <><p role="alert">{error}</p><button onClick={() => setAttempt(value => value + 1)}>Réessayer</button></>;
   return <>
     <h2>{profile ? `BONJOUR ${profile.pseudo}` : 'CHOISIS TON PSEUDO'}</h2>
-    {editing ? <form onSubmit={save} aria-busy={saving}>
+    {!profile ? <form onSubmit={save} aria-busy={saving}>
       <label htmlFor="player-pseudo">Pseudo du classement</label>
       <input id="player-pseudo" autoComplete="nickname" minLength={2} maxLength={16} required value={pseudo} onChange={event => setPseudo(event.target.value)} disabled={saving} aria-describedby="pseudo-hint" />
       <small id="pseudo-hint">2 à 16 caractères : lettres, chiffres, espaces, _ ou -.</small>
       <button type="submit" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer le pseudo'}</button>
-      {profile && <button type="button" disabled={saving} onClick={() => { setPseudo(profile.pseudo); setEditing(false); setError(''); }}>Annuler</button>}
     </form> : <>
       <p role="status">Ton profil est prêt.</p>
-      <p>La cuisine se prépare encore. Le lancement des parties sera disponible avec la scène de jeu.</p>
-      <button type="button" onClick={() => setEditing(true)}>Modifier mon pseudo</button>
+      {children}
     </>}
     {error && <p role="alert">{error}</p>}
   </>;
